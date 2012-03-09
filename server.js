@@ -1,4 +1,4 @@
-var html = require('fs').readFileSync(__dirname+'content/test.html');
+var html = require('fs').readFileSync(__dirname+'/content/test.html');
 var server = require('http').createServer(function(req, res){
   res.end(html);
 });
