@@ -4,42 +4,7 @@ var http = require('http');
 var fs = require('fs');
 
 var express = require('express');
-var app = express.createServer(),
-  fb = require('facebook-js')
-  , app = express.createServer(
-      express.bodyParser()
-    , express.cookieParser()
-    , express.session({ secret: 'pizza cat balls' })
-    );
-
-app.get('/login', function (req, res) {
-  res.redirect(fb.getAuthorizeUrl({
-    client_id: '191378074298387',
-    redirect_uri: 'http://devsohanjain.com/',
-    scope: 'offline_access,publish_stream'
-  }));
-});
-
-app.get('/auth', function (req, res) {
-  fb.getAccessToken('191378074298387', '7fbb2a101e9472cda286b5d7b3b42b02', req.param('code'), 'http://devsohanjain.com/auth', function (error, access_token, refresh_token) {
-    res.json({access_token: access_token, refresh_token: refresh_token});
-  });
-});
-
-app.post('/message', function (req, res) {
-  fb.apiCall('POST', '/me/feed',
-    {access_token: req.param('access_token'), message: req.param('message')},
-    function (error, response, body) {
-      res.json({body: body});
-    }
-  );
-});
-
-app.get('/messages', function (req, res) {
-  var stream = fb.apiCall('GET', '/me/feed', {access_token: req.param('access_token'), message: req.param('message')});
-  stream.pipe(fs.createWriteStream('backup_feed.txt'));
-});
-
+var app = express.createServer();
 
 // routing
 app.get('/', function (req, res) {
