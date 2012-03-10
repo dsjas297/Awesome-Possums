@@ -56,6 +56,7 @@ var starting_gold = 1000;
 var starting_lives = 3;
 var tower_id = 0;
 var creep_id = 0;
+var cur_level = 1;
 
 var game_start = false;
 
@@ -85,10 +86,10 @@ function Creep(id) {
   this.id = id;
   this.x = 0;
   this.y = 2;
-  this.speed = 1;
+  this.speed = level;
   this.path = the_path;
   this.pathIndex = 0;
-  this.health = 10;
+  this.health = 10 + 10*level;
   this.xVel = 1;
   this.yVel = 0;
 }
@@ -268,7 +269,7 @@ everyone.now.gameStart = function() {
 
 var lastTime = new Date().getTime();
 var lastCreepSpawn = lastTime;
-
+var lastLevelChange = 0;
 function loop() {
     if(game_start){
         var currentTime = new Date().getTime();
@@ -276,6 +277,11 @@ function loop() {
         if (currentTime - lastCreepSpawn >= 1000) {
             lastCreepSpawn = currentTime;
             spawnAllCreeps();
+        }
+        lastLevelChange += currentTime - lastTime;
+        if (lastLevelChange >= 60000) {
+            level++;
+            lastLevelChange = 0;
         }
         lastTime = currentTime;
     }
