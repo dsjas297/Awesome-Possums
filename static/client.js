@@ -249,18 +249,19 @@ var draw_tower = function(level, x, y) {
 
 var select_terrain = function(e) {
     $('#tower_panel').html('');
+    if (tile.td.type != 'terrain') {
+        return;
+    }
     map[last_selected.x][last_selected.y].attr({'fill': colors()['terrain']});
     last_selected = {x: this.td.x, y: this.td.y};
     var tile = this;
-    if (tile.td.type == 'terrain') {
-        if (tile.td.tower == null) {
-            tile.attr({'fill': colors()['selected_terrain']});
-            do_build_tower_menu(tile);
-        }else
-        {
-            tile.attr({'fill': colors()['selected_terrain']});
-            do_upgrade_tower_menu(tile);
-        }
+    if (tile.td.tower == null) {
+        tile.attr({'fill': colors()['selected_terrain']});
+        do_build_tower_menu(tile);
+    }else
+    {
+        tile.attr({'fill': colors()['selected_terrain']});
+        do_upgrade_tower_menu(tile);
     }
 }
 
