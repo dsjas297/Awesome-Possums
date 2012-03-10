@@ -33,7 +33,9 @@ var game_start = true;
 var the_path = [[0,2],[2,2],[2,8],[6,8],[6,2],[9,2]];
 
 nowjs.on('connect', function() {
-  players[this.user.clientId] = new User();
+  if (!(this.user.clientId in players)) {
+      players[this.user.clientId] = new User();
+  }
 });
 
 nowjs.on('disconnect', function() {
@@ -51,6 +53,8 @@ function User() {
   this.towers = [];
   this.creeps = [];
   this.enemies = [];
+  this.fb_id = "";
+  this.profile_pic = "";
 }
 
 function Creep(id) {
