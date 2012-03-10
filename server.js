@@ -57,6 +57,8 @@ var starting_lives = 3;
 var tower_id = 0;
 var creep_id = 0;
 
+var game_start = false;
+
 var the_path = [[0,2],[2,2],[2,8],[6,8],[6,2],[9,2]];
 
 nowjs.on('connect', function() {
@@ -260,16 +262,23 @@ everyone.now.addCreep = function() {
     }
 }
 
+everyone.now.gameStart = function() {
+    game_start = true;
+}
+
 var lastTime = new Date().getTime();
 var lastCreepSpawn = lastTime;
+
 function loop() {
-    var currentTime = new Date().getTime();
-    updateGameState(currentTime - lastTime);
-    if (currentTime - lastCreepSpawn >= 1000) {
-        lastCreepSpawn = currentTime;
-        spawnAllCreeps();
+    if(game_start){
+        var currentTime = new Date().getTime();
+        updateGameState(currentTime - lastTime);
+        if (currentTime - lastCreepSpawn >= 1000) {
+            lastCreepSpawn = currentTime;
+            spawnAllCreeps();
+        }
+        lastTime = currentTime;
     }
-    lastTime = currentTime;
     setTimeout(loop,40);
 }
 
