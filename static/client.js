@@ -8,9 +8,12 @@ $(document).ready(function() {
     tiles_group = api.tiles_group;
     game_tick_ms = 100;
     last_selected = {x: 0, y: 0};
+
+    path = Object();
+    initialize_path();
+
     creeps = Object();
     update_creep_loop();
-
 });
 
 var game = function() {
@@ -21,11 +24,21 @@ var game = function() {
     return api;
 }
 
+var initialize_path = function()
+{
+    path.0 = {x: 0, y: 2};
+    path.1 = {x: 2, y: 2};
+    path.2 = {x: 2, y: 8};
+    path.3 = {x: 6, y: 8};
+    path.4 = {x: 6, y: 2};
+    path.5 = {x: 9, y: 2};
+}
+
 now.create_creep = function(id, vel, x, y, path, cur_index) {
     create_creep(id, vel, x, y, path, cur_index);
 }
 
-var create_creep = function(id,vel,x,y,path,cur_index) {
+var create_creep = function(id,vel,x,y,cur_index) {
     var creep = paper.circle(x, y, tile_size/5);
     creep.attr({'fill': colors()['creep_color']}).glow();
     var api = Object();
@@ -70,6 +83,37 @@ var create_tile = function(i, j) {
     return tile;
 }
 
+//changes colors along the path
+var init_path_graphics = function(){
+    var i,j, dir;
+    for (i = 0; i < 5; i++){
+        var x = path[i]['x'], nx = path[i+1]['x'];
+        var y = path[i]['y'], ny = path[i+1]['y'];
+        if (x != nx)
+        {
+            if (nx > x) dir = 1; 
+            else dir = -1;
+            for(j = x; j <= nx; j += dir)
+            {
+                map[i][j].td.type = 'path'; 
+                map[i][j].td.attr('fill', colors()['path']);
+            }
+        }else
+        {
+            if (ny > y) dir = 1; 
+            else dir = -1;
+            for(j = y; j <= ny; j += dir)
+            {
+                map[i][j].td.type = 'path'; 
+                map[i][j].td.attr('fill', colors()['path']);
+            }
+
+        }
+    }
+
+
+}
+
 //create a map
 var init_map = function(paper, width, height, tile_size) {
     var map = Array();
@@ -83,6 +127,7 @@ var init_map = function(paper, width, height, tile_size) {
             map[i][j] = tile;
         }
     }
+
     tiles_group.attr().click(select_terrain);
     api.map = map;
     api.tiles_group = tiles_group;
