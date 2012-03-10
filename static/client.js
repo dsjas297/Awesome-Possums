@@ -1,7 +1,7 @@
 $(document).ready(function() {
-    width = 20;
-    height = 20;
-    tile_size = 30;
+    width = 10;
+    height = 10;
+    tile_size = 40;
     paper = Raphael('board', width * tile_size, height * tile_size);
     api = init_map(paper, width, height, tile_size);
     map = api.map;
@@ -10,6 +10,7 @@ $(document).ready(function() {
     last_selected = {x: 0, y: 0};
     creeps = Object();
     update_creep_loop();
+
 });
 
 now.create_creep = function(id, vel, x, y, path, cur_index) {
@@ -43,7 +44,8 @@ var colors = function() {
     api['terrain'] = '#569993';
     api['basic_tower'] = '#29FF73';
     api['selected_terrain'] = '#007167';
-    api['creep_color'] = '#CC5DC0';
+    api['creep_color'] = '#FF6C00';
+    api['laser_color'] = '#FF0016';
     return api;
 }
 
@@ -214,14 +216,21 @@ var destroy_creep(id) {
     delete creep[id];
 }
 
-var update_creep_lop = function() {
+var update_creep_loop = function() {
     var t = setTimeout(update_all_creeps, game_tick_ms);
 }
 
 var tower_fire(tower_x, tower_y, creep_id) {
-
+    var creep = creeps[creep_id];
+    var laser = draw_laser(tower_x*tile_size, tower_y*tile_size, creep.x, creep.y);
+    setTimeout(function(){laser.remove()}, 200);
 }
 
+var draw_laser(x, y, cx, cy) {
+    var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
+    laser.attr({'fill': colors()['laser_color']});
+    return laser;
+}
 
 
 
