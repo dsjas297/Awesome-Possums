@@ -248,6 +248,18 @@ everyone.now.syncState = function() {
     this.now.client_sync_state( players[this.user.clientId].creeps, players[this.user.clientId].lives, players[this.user.clientId].goldCount );
 }
 
+everyone.now.addCreep = function() {
+    for (var i in players) {
+        if(i != this.user.clientId){
+            var creep = new Creep(creep_id++);
+            players[i].creeps.push(creep);
+            nowjs.getClient(i, function(){
+                this.now.client_create_creep(creep.id);
+            });
+        }
+    }
+}
+
 var lastTime = new Date().getTime();
 var lastCreepSpawn = lastTime;
 function loop() {
