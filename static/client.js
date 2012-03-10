@@ -6,8 +6,10 @@ $(document).ready(function() {
     api = init_map(paper, width, height, tile_size);
     map = api.map;
     tiles_group = api.tiles_group;
+    game_tick_ms = 100;
     last_selected = {x: 0, y: 0};
     creeps = Object();
+    update_creep_loop();
 });
 
 now.create_creep = function(id, vel, x, y, path, cur_index) {
@@ -151,62 +153,74 @@ var select_tower = function(e) {
 
 //update locations of all creeps
 //arg: time_step is the delta/change from last update
-var update_all_creeps = function(time_step) {
+var update_all_creeps = function() {
+    time_step = game_tick_ms; 
+    for (var id in creeps) {
+        var creep = creeps[id];
     
-    for (var creep in creeps) {
-        creep.x + 
-    
-        var next = creep['path'].(creep.cur_index+1);
+        if (creep.api.cur_index == creep['api']['path'].length - 1) {
+            //we're at the last position, remove the creep
+            destroy_creep(id);
+        }
+        var next = creep['api']['path'][creep.api.cur_index+1];
         
         var x_dir, y_dir;
-        var x_diff = Math.abs(next.x - creep.x);
-        var y_diff = Math.abs(next.y - creep.y);
+        var creep_x = creep.api.x;
+        var creep_y = creep.api.y;
+        var x_diff = Math.abs(next.x - creep_x);
+        var y_diff = Math.abs(next.y - creep_y);
         var to_next_loc; //distance to next location
 
         if (x_diff > y_diff) 
         {
             to_next_loc = x_diff;
-            x_dir = next.x - creep.x; y_dir = 0;
+            x_dir = next.x - creep_x; y_dir = 0;
         }else
         {
             to_next_loc = y_diff;
-            y_dir = next.y - creep.y; x_dir = 0;
+            y_dir = next.y - creep_y; x_dir = 0;
         }
 
         // if reached/past next location
         if(to_next_loc < time_step * creep.vel) 
         {
-            creep.x = next.x; creep.y = next.y;
+            creep_x = next.x; creep_y = next.y;
             creep.cur_index = creep.cur_index+1;
         }else // move it closer
         {
-            creep.x = creep.x + time_step * creep.vel * x_dir;
-            creep.y = creep.y + time_step * creep.vel * y_dir;
+            creep_x = creep_x + time_step * creep.api.vel * x_dir;
+            creep_y = creep_y + time_step * creep.api.vel * y_dir;
         }
+        creep.api['x'] = creep_x;
+        creep.api['y'] = creep_y;
+        creep.x = creep.api.x * tile_size;
+        creep.y = creep.api.y * tile_size;
+        //cur_index is the last location on the path that the creep visited
+        creep.api['cur_index'] = cur_index; 
     }
-
-
-    api['id'] = id;
-    api['vel'] = vel;
-    api['x'] = x;
-    api['y'] = y;
-    api['path'] = path;
-    //cur_index is the last location on the path that the creep visited
-    api['cur_index'] = cur_index; 
-
 }
 
 //used to sync creeps with the information on the server side 
 var sync_creeps = function(server_creeps){
-    creeps = server_creeps;
+    creeps = Object();
+    for (var creep in server_creeps) {
+        create_creep(creep.id, creep.vel, creep.x, creep.y, creep.path, creep.cur_index);
+    }
 }
 
+var destroy_creep(id) {
+    var creep = creeps[id]; 
+    creep.remove();
+    delete creep[id];
+}
 
+var update_creep_lop = function() {
+    var t = setTimeout(update_all_creeps, game_tick_ms);
+}
 
+var tower_fire(tower_x, tower_y, creep_id) {
 
-
-
-
+}
 
 
 
