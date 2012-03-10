@@ -183,7 +183,6 @@ function updateGameState(delta){
 }
 
 function spawnUserCreep(userid, user, creep_pic) {
-    console.log('spawn user creep', userid, user);
     var creep = new Creep(creep_id++, creep_pic);
     //everyone.now.addCreep(creep.id);
     user.creeps.push(creep);

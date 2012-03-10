@@ -40,15 +40,15 @@ $(document).ready(function(){
 
 now.newPlayer = function(players) {
     var players_div = $('#players');
-    players_div.html('<tr><th>Name</th><th>Picture</th></tr>');
+    players_div.html('<tr><th>Name</th><th>Picture</th><th>Player profile(new window)</th></tr>');
     for (var id in players) {
         var player = players[id];
         if (player.name) {
             var new_player = $('<tr></tr>');
             players_div.append(new_player);
             new_player.append($('<td>' + player.name + '</td>'));
-            new_player.append($('<td>' + 'http://www.facebook.com/' + id + '</td>'));
             new_player.append($('<td><img src="' +player.profile_pic + '"></td>'));
+            new_player.append($('<td><a href="http://www.facebook.com/' + player.fb_id + '" target="_blank">' + player.name + "'s profile </a></td>"));
         }
     }
 }
