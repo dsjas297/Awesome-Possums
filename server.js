@@ -10,6 +10,10 @@ var app = express.createServer();
 app.get('/', function (req, res) {
     res.sendfile(__dirname + '/static/index.html');
 });
+
+app.get('/room', function (req, res) {
+    res.sendfile(__dirname + '/static/room.html');
+});
  
 app.use("/static", express.static(__dirname + '/static'));
 app.listen(8080);
@@ -55,6 +59,7 @@ function User() {
   this.enemies = [];
   this.fb_id = "";
   this.profile_pic = "";
+  this.name = "";
 }
 
 function Creep(id) {
@@ -214,6 +219,13 @@ everyone.now.buildTower = function(x, y, type) {
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
+everyone.now.joinRoom(function (fb_id, profile_pic) {
+      players[this.user.clientId].fb_id = fb_id;
+      players[this.user.clientId].profile_pic = profile_pic;
+      players[this.user.clientId].name = name;
+      everyone.now.newPlayer()
+});
+
 everyone.now.upgradeTower = function(x, y) {
     var retval = false;
     var tower;
@@ -261,7 +273,7 @@ var lastTime = new Date().getTime();
 var lastCreepSpawn = lastTime;
 var lastLevelChange = 0;
 function loop() {
-    if(true){
+    if(game_start){
         var currentTime = new Date().getTime();
         updateGameState(currentTime - lastTime);
         if (currentTime - lastCreepSpawn >= 1000) {
