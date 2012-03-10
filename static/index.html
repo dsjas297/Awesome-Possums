@@ -2,6 +2,7 @@
   <head>
     <style type="text/css">
       #game_container{margin-left:0; margin-top:10}
+      .hidden{display:none}
     </style>
   </head>
   <body>
@@ -14,25 +15,30 @@
       </div>
     </div>
 
-    <div class="container" id="game_container">
-      <div class="row span12">
-        <div id="board" class="span 6">
-    
-        </div>
-        <div id="stats_panel" class="span 6">
-          <table>
-            <tbody>
-              <tr>
-                <h3> Gold: <span id="player_gold">10</span></h3>
-              </tr>
-              <tr>
-                <h3> Lives: <span id="player_lives">10</span></h3>
-              </tr>
-              <tr id="tower_panel">
-              </tr>
-              <tr id="log">
-              </tr>
-          </tbody>
+    <div class="container">
+      <div id = "join_game">
+
+      </div>
+      <div id="game_container" class="">
+        <div class="row span12">
+          <div id="board" class="span 6">
+      
+          </div>
+          <div id="stats_panel" class="span 6">
+            <table>
+              <tbody>
+                <tr>
+                  <h3> Gold: <span id="player_gold">10</span></h3>
+                </tr>
+                <tr>
+                  <h3> Lives: <span id="player_lives">10</span></h3>
+                </tr>
+                <tr id="tower_panel">
+                </tr>
+                <tr id="log">
+                </tr>
+            </tbody>
+          </div>
         </div>
       </div>
     </div>
