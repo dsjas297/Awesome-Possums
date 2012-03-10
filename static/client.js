@@ -74,6 +74,14 @@ var colors = function() {
     return api;
 }
 
+var get_tower_color = function(level){
+    var r = 50+20*level;
+    var g = 50+20*level;
+    var b = 50+20*level;
+    return 'rgb(r,g,b)';
+}
+
+
 var create_tile = function(i, j) {
     var tile = paper.rect(i*tile_size, j*tile_size,
        tile_size, tile_size); 
@@ -234,7 +242,7 @@ var draw_tower = function(level, x, y) {
         map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
         map[x][y].td.tower.x = x;
         map[x][y].td.tower.y = y;
-        map[x][y].td.tower.attr({'fill': colors()['basic_tower']}); 
+        map[x][y].td.tower.attr({'fill': get_tower_color(level)}); 
         map[x][y].td.tower.level = level;
         map[x][y].td.tower.click(select_tower);
     }
