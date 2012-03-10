@@ -86,9 +86,8 @@ now.client_create_creep = function(id) {
 }
 
 var create_creep = function(id, x, y, cur_index) {
-    var creep = paper.circle((x+.5) * tile_size,
-        (y+.5) * tile_size, 
-        tile_size/5);
+    var creep = Paper.image('http://profile.ak.fbcdn.net/hprofile-ak-snc4/195630_1000_5535330_t.jpg', 
+                           (x+.5) * tile_size, (y+.5) * tile_size, 50, 67);
     creep.attr({'fill': colors()['creep_color']});
     var api = Object();
     api['id'] = id;
