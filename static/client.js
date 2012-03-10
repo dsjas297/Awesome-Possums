@@ -94,11 +94,13 @@ var init_room = function() {
 
 now.move_from_room_to_game = function() {
     console.log('move_from game to room');
+    if (!$('#game_container').hasClass('active')) {
+    start_client_game();
+    }
     $('#join_game').removeClass('active');
     $('#join_game').addClass('hidden');
     $('#game_container').removeClass('hidden');
     $('#game_container').addClass('active');
-    start_client_game();
 }
 
 var game = function() {
