@@ -157,13 +157,31 @@ var update_all_creeps = function(time_step) {
         creep.x + 
     
         var next = creep['path'].(creep.cur_index+1);
-        //distance to next location
-        var to_next_loc = Math.max(Math.abs(next.x - creep.x), Math.abs(next.y - creep.y)); 
+        
+        var x_dir, y_dir;
+        var x_diff = Math.abs(next.x - creep.x);
+        var y_diff = Math.abs(next.y - creep.y);
+        var to_next_loc; //distance to next location
+
+        if (x_diff > y_diff) 
+        {
+            to_next_loc = x_diff;
+            x_dir = next.x - creep.x; y_dir = 0;
+        }else
+        {
+            to_next_loc = y_diff;
+            y_dir = next.y - creep.y; x_dir = 0;
+        }
+
         // if reached/past next location
         if(to_next_loc < time_step * creep.vel) 
         {
             creep.x = next.x; creep.y = next.y;
             creep.cur_index = creep.cur_index+1;
+        }else // move it closer
+        {
+            creep.x = creep.x + time_step * creep.vel * x_dir;
+            creep.y = creep.y + time_step * creep.vel * y_dir;
         }
     }
 
