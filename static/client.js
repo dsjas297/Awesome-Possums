@@ -149,6 +149,18 @@ var do_build_tower_menu = function(tile) {
     //cost for tower
 }
 
+var upgrade_tower_menu = function(tile) {
+    var menu = $('#tower_panel').append(
+        '<div class="menu"></div>');
+    var upgrade_tower_button = $(          // upgrade cost here!!!!!!!!
+        '<button class="btn btn-primary" id="upgrade_basic_tower" type="submit">Upgrade tower: ' + towers().basic_tower.cost + '</button>');
+    menu.append(upgrade_tower_button);
+    upgrade_tower_button.attr('tower_type', 'upgraded');
+    upgrade_tower_button.attr('x', tile.td.x);
+    upgrade_tower_button.attr('y', tile.td.y);
+    upgrade_tower_button.bind('click', server_upgrade_tower);
+}
+
 var server_build_tower = function() {
     now.buildTower(
         this.getAttribute('x'), 
@@ -166,6 +178,25 @@ now.client_build_tower = function(success, x, y, type, new_gold) {
         log('Could not build tower.');
     }
 }
+
+var server_upgrade_tower = function() {
+    now.buildTower(
+        this.getAttribute('x'), 
+        this.getAttribute('y'),
+        this.getAttribute('tower_type')
+    );
+}
+
+now.client_upgrade_tower = function(success, x, y, type, new_gold) {
+    if (success) {
+        log('Successfully upgraded tower: ' + type);
+        draw_tower(type, x, y);
+        update_gold(new_gold);
+    } else {
+        log('Could not upgrade tower.');
+    }
+}
+
 
 var update_gold = function(gold) {
     $('#player_gold').html(gold);
@@ -194,6 +225,10 @@ var select_terrain = function(e) {
         if (tile.td.tower == null) {
             tile.attr({'fill': colors()['selected_terrain']});
             do_build_tower_menu(tile);
+        }else
+        {
+            tile.attr({'fill': colors()['selected_terrain']});
+            upgrade_tower_menu(tile);
         }
     }
 }
