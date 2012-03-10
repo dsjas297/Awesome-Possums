@@ -148,7 +148,7 @@ everyone.now.buildTower = function(x, y, type) {
 
 function gameLoop(){
     updateGameState();
-    var t = setTimeout("gameLoop()", 50);
+    var t = setTimeout(gameLoop, 50);
 }
 
-var t = setTimeout("gameLoop()", 5000);
+var t = setTimeout(gameLoop, 5000);
