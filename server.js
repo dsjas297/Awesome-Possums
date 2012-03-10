@@ -28,7 +28,7 @@ var tower_id = 0;
 var creep_id = 0;
 everyone.now.level = 1;
 
-var game_start = false;
+var game_start = true;
 
 var the_path = [[0,2],[2,2],[2,8],[6,8],[6,2],[9,2]];
 
@@ -133,8 +133,8 @@ function updateCreep(userid, user, creep, delta) {
 
              if(user.lives == 0)
              {
-                 delete players[this.user.clientId];
-                 return;
+                 //delete players[this.user.clientId];
+                 //return;
              }
 
              // tell them a creep reached the end
@@ -171,6 +171,7 @@ function updateGameState(delta){
 
 function spawnUserCreep(userid, user) {
     var creep = new Creep(creep_id++);
+    everyone.now.addCreep(creep.id);
     user.creeps.push(creep);
     nowjs.getClient(userid, function(){
       this.now.client_create_creep(creep.id);
@@ -180,10 +181,11 @@ function spawnUserCreep(userid, user) {
 function spawnAllCreeps() {
     for (var i in players) {
         //for each player, spawn creeps to them based on who's in their poke list
-        nowjs.getClient(userid, function() {
+        nowjs.getClient(i, function() {
+            spawnUserCreep(i, players[i]);
             for (var fb_player_id in this.now.fb_poke_ids) {
                 for (var j = 0; j < 1; j++) {
-                    spawnUserCreep(userid, players[i]);
+                    spawnUserCreep(i, players[i]);
                 }
             }
         });
@@ -255,7 +257,7 @@ var lastTime = new Date().getTime();
 var lastCreepSpawn = lastTime;
 var lastLevelChange = 0;
 function loop() {
-    if(game_start){
+    if(true){
         var currentTime = new Date().getTime();
         updateGameState(currentTime - lastTime);
         if (currentTime - lastCreepSpawn >= 1000) {

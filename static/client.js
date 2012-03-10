@@ -12,7 +12,6 @@ window.fbAsyncInit = function() {
 
 $(document).ready(function(){
     $('#login').click(function() {
-       console.log('hello');
        FB.login(function(response) {
        if (response.authResponse) {
          console.log('Welcome!  Fetching your information.... ');
@@ -26,26 +25,6 @@ $(document).ready(function(){
      }, {scope: 'read_mailbox'});
     });
 });
-
-var sync_pokes = function() {
-    //make sure they've logged in first?
-    FB.api('/me/pokes',  function(response) {
-        var fb_poke_ids = {};
-        var fb_user_id = "";
-        for(var i=0; i < response.data.length; i++) {
-          fb_poke_ids[response.data[i].from.id] = response.data[i].from.name;
-          fb_user_id = repsonse.data[i].to.id;
-        }
-        now.fb_user_id = fb_user_id;
-        now.fb_poke_ids = fb_poke_ids;
-      }
-    );
-    setTimeout(sync_pokes, poke_frequency);
-};
-
-var sync_pokes_loop = function() {
-    setTimeout(sync_pokes, poke_frequency);
-}
 
 // Load the SDK Asynchronously
 (function(d){
@@ -63,12 +42,12 @@ $(document).ready(function() {
     paper = Raphael('board', (width + 1)* tile_size, (height +1)* tile_size);
     path = Object();
     initialize_path();
-    api = init_map(paper, width, height, tile_size);
+    api = init_map(width, height, tile_size);
     map = api.map;
     init_path_graphics();
     tiles_group = api.tiles_group;
     game_tick_ms = 100;
-    game_sync_ms = 100;
+    game_sync_ms = 10;
     poke_frequency = 2000;
     last_selected = {x: 0, y: 0};
     lives = 10;
@@ -106,8 +85,8 @@ now.client_create_creep = function(id) {
 }
 
 var create_creep = function(id, x, y, cur_index) {
-    var creep = paper.circle(x * tile_size,
-        y * tile_size, 
+    var creep = paper.circle((x+.5) * tile_size,
+        (y+.5) * tile_size, 
         tile_size/5);
     creep.attr({'fill': colors()['creep_color']});
     var api = Object();
@@ -188,7 +167,7 @@ var init_path_graphics = function(){
 }
 
 //create a map
-var init_map = function(paper, width, height, tile_size) {
+var init_map = function(width, height, tile_size) {
     var map = Array();
     var tiles_group = paper.set();
     var api = Object();
@@ -397,10 +376,10 @@ var update_all_creeps = function() {
             }
             creep.api['x'] = creep_x;
             creep.api['y'] = creep_y;
-            creep.x = (creep.api.x+0.5)* tile_size;
-            creep.y = (creep.api.y+0.5) * tile_size;
-            creep.animate(creep.attr({'cx': creep.api.x * tile_size,
-                'cy': creep.api.y * tile_size}));
+            creep.x = (creep.api.x+0.0)* tile_size;
+            creep.y = (creep.api.y+0.0) * tile_size;
+            creep.animate(creep.attr({'cx': (creep.api.x + .5) * tile_size,
+                'cy': (creep.api.y + .5) * tile_size}));
             //cur_index is the last location on the path that the creep visited
         } catch (error) {
             //console.log(error);
@@ -419,18 +398,22 @@ now.client_creep_reached_end = function(creep_id) {
 
 //used to sync creeps with the information on the server side 
 var sync_state = function(server_creeps, lives, gold){
+    /*
     if (lives == 0)
     {
         paper.print(100, 100, "GAME OVER", paper.getFont("Times", 800), 30);
         return;
     }
+    */
     for (var id in creeps) {
         destroy_creep(id);
     }
     creeps = Object();
     for (var i in server_creeps) {
         var creep = server_creeps[i];
-        create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
+        if (creep != null) {
+            create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
+        }
     }
     update_gold(gold);
     update_lives(lives);
@@ -450,9 +433,15 @@ var creep_reached_end = function(creep_id) {
 }
 
 var destroy_creep = function(id) {
-    var creep = creeps[id]; 
-    creep.remove();
-    delete creep[id];
+    try {
+        if (creeps[id]) {
+            var creep = creeps[id]; 
+            creep.remove();
+            delete creep[id];
+        }
+    } catch(err){
+        
+    }
 }
 
 now.client_destroy_creep = function(id) {
@@ -469,17 +458,44 @@ now.client_tower_fire = function(tower_x, tower_y, creep_id) {
 
 var tower_fire = function(tower_x, tower_y, creep_id) {
     var creep = creeps[creep_id];
-    var laser = draw_laser(tower_x*tile_size, tower_y*tile_size, creep.x, creep.y);
+    x = ((parseFloat(tower_x) + .5) * tile_size);
+    y = ((parseFloat(tower_y) + .5) * tile_size);
+    cx = ((parseFloat(creep.api.x)+.5) * tile_size);
+    cy = ((parseFloat(creep.api.y)+.5) * tile_size);
+    //var laser = draw_laser((tower_x+.5)*tile_size, (tower_y+.5)*tile_size, (creep.api.x+.5)*tile_size, (creep.api.y+.5)*tile_size);
+    console.log(x, y, cx, cy);
+    var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
+    laser.attr({'fill': colors()['laser_color'],
+                'stroke-width': 3});
     setTimeout(function(){laser.remove()}, 200);
 }
 
 var draw_laser = function(x, y, cx, cy) {
-    var laser = paper.path("M" + (x+.5)*tile_size + " " + (y+.5) *tile_size + "L" + (cx+.5)*tile_size + " " + (cy+.5)*tile_size);
+    console.log(x, y, cx, cy);
+    var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
     laser.attr({'fill': colors()['laser_color'],
                 'stroke-width': 3});
     return laser;
 }
 
+var sync_pokes = function() {
+    //make sure they've logged in first?
+    FB.api('/me/pokes',  function(response) {
+        var fb_poke_ids = {};
+        var fb_user_id = "";
+        if (response != null) {
+            for(var i=0; i < response.data.length; i++) {
+              fb_poke_ids[response.data[i].from.id] = response.data[i].from.name;
+              fb_user_id = response.data[i].to.id;
+            }
+            now.fb_user_id = fb_user_id;
+            now.fb_poke_ids = fb_poke_ids;
+        }
+      }
+    );
+    setTimeout(sync_pokes, poke_frequency);
+};
 
-
-
+var sync_pokes_loop = function() {
+    setTimeout(sync_pokes, poke_frequency);
+}
