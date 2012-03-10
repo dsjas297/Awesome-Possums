@@ -105,17 +105,23 @@ function inRange(creep, tower){
     return false;
 }
 
-function updateTower(tower, creeps, delta) {
-   tower.timeSinceShot++;
-   if (tower.timeSinceShot > 100){
+function updateTower(userid, tower, creeps, delta) {
+   tower.timeSinceShot = tower.timeSinceShot + delta;
+   if (tower.timeSinceShot > 500){
       for(var i in creeps){
           if( inRange(creep, tower) ){
+              // tell them to fire a tower
+              nowjs.getClient(userid, function(){
+                  this.now.tower_fire(tower.x, tower.y, creeps[i].id)
+              });
               tower.timeSinceShot = 0;
               creeps[i].health--;
               if(creeps[i].health <=0){
                   delete creeps[i];
+                  nowjs.getClient(userid, function(){
+                      this.now.delete_creep(creeps[i].id)
+                  });
               }
-              this.now.fireTower(tower.x, tower.y, creeps[i].x, creeps[i].y)
               break;
           }
       }
@@ -128,48 +134,6 @@ function dist(x1,x2,y1,y2) {
 
 function updateCreep(userid, user, creep, delta) {
    if (creep.pathIndex != creep.path.length - 1) {
-             nextY = nextPoint[1];
-             var diffX = nextX - creep.x;
-             var diffY = nextY - creep.y;
-             var normFactor = Math.sqrt(diffX*diffX + diffY*diffY);
-             creep.xVel = diffX / normFactor;
-             creep.yVel = diffY / normFactor;
-         }
-      }
-   }
-}
-
-function updateGameState(){
-  for (var i in players[this.user.clientId].towers){
-      updateTower(players[this.user.clientId].towers[i]);
-  }
-  for (var i in players[this.user.clientId].creeps){
-      updateCreep(players[this.user.clientId].creeps[i]);
-  }
-  this.now.updateState(players[this.user.clientId]);
-}
-
-everyone.now.buildTower = function(x, y, type) {
-    var retval = false;
-    if(players[this.user.clientId].goldCount > 20){
-        retval = true;
-        var tid = tower_id++;
-        players[this.user.clientId].goldCount = players[this.user.clientId].goldCount - 20;
-        players[this.user.clientId].towers[tid] = new Tower("basic");
-        players[this.user.clientId].towers[tid].x = x;
-        players[this.user.clientId].towers[tid].y = y;
-        players[this.user.clientId].towers[tid].timeSinceShot = 0;
-        players[this.user.clientId].towers[tid].range = 50;
-    }
-    
-    this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
-}
-
-function gameLoop() {
-    updateGameState();
-}
-
-var t = setTimeout(gameLoop, 5000);
       var nextPoint = creep.path[creep.pathIndex + 1];
       creep.x = creep.x + delta * creep.speed * creep.xVel;
       creep.y = creep.y + delta * creep.speed * creep.yVel;
@@ -207,14 +171,17 @@ var t = setTimeout(gameLoop, 5000);
    }
 }
 
-function updateGameState(){
-  for (var i in players[this.user.clientId].towers){
-      updateTower(players[this.user.clientId].towers[i]);
+function updateGameState(delta){
+  for (var i in players){
+      for(var j in players[i].towers){
+          updateTower(i, players[i].towers[j], players[i].creeps, delta);
+      }
   }
-  for (var i in players[this.user.clientId].creeps){
-      updateTower(players[this.user.clientId].creeps[i]);
+  for (var i in players){
+      for(var j in players[i].creeps){
+          updateCreep(i, players[i], players[i].creeps[j], delta);
+      }
   }
-  this.now.updateState(players[this.user.clientId]);
 }
 
 everyone.now.buildTower = function(x, y, type) {
@@ -233,8 +200,13 @@ everyone.now.buildTower = function(x, y, type) {
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
-function gameLoop() {
-    updateGameState();
+everyone.now.synchCreeps = function() {
+    this.now.synchCreeps( players[this.user.clientId].creeps );
 }
 
-var t = setTimeout(gameLoop, 5000);
+lastTime = Date.getTime();
+while(1) {
+    currentTime = Date.getTime();
+    updateGameState(currentTime - lastTime);
+    lastTime = currentTime;
+}
