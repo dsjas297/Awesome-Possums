@@ -13,7 +13,6 @@ $(document).ready(function() {
     game_sync_ms = 100;
     last_selected = {x: 0, y: 0};
 
-
     creeps = Object();
     update_creep_loop();
     now.ready(function() {
@@ -222,6 +221,10 @@ var update_gold = function(gold) {
     $('#player_gold').html(gold);
 }
 
+var update_map_level = function(level) {
+    $('#map_level').html(level);
+}
+
 var update_lives = function(lives) {
     $('#player_lives').html(lives);
 }
@@ -360,6 +363,7 @@ var sync_state = function(server_creeps, lives, gold){
     }
     update_gold(gold);
     update_lives(lives);
+    update_map_level(now.level);
 }
 
 var sync_state_loop = function() {
