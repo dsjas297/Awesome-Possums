@@ -24,7 +24,7 @@ var everyone = nowjs.initialize(app);
 var map_height = 20;
 var map_width = 20;
 
-var players = [];
+var players = {};
 
 var starting_gold = 1000;
 var starting_lives = 5;
@@ -32,7 +32,7 @@ var tower_id = 0;
 var creep_id = 0;
 everyone.now.level = 1;
 
-var game_start = true;
+var game_start = false;
 
 var the_path = [[0,2],[2,2],[2,8],[6,8],[6,2],[9,2]];
 
@@ -219,12 +219,21 @@ everyone.now.buildTower = function(x, y, type) {
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
-everyone.now.joinRoom(function (fb_id, profile_pic) {
+everyone.now.joinRoom = function (fb_id, profile_pic, name) {
+      if (!(this.user.clientId in players)) {
+        players[this.user.clientId] = User();
+      }
       players[this.user.clientId].fb_id = fb_id;
       players[this.user.clientId].profile_pic = profile_pic;
       players[this.user.clientId].name = name;
-      everyone.now.newPlayer()
-});
+      console.log(players);
+      everyone.now.newPlayer(players);
+}
+
+everyone.now.startGameForAll = function() {
+    everyone.now.move_from_room_to_game();
+    game_start = true;
+}
 
 everyone.now.upgradeTower = function(x, y) {
     var retval = false;

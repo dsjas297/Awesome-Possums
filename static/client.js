@@ -18,6 +18,9 @@ $(document).ready(function(){
          FB.api('/me', function(response) {
            console.log(response);
            console.log('Good to see you, ' + response.name + '.');
+           var profile_pic = 
+           'http://graph.facebook.com/' + response.username + '/picture'
+           now.joinRoom(response.id, profile_pic, response.first_name);
          });
        } else {
          console.log('User cancelled login or did not fully authorize.');
@@ -35,6 +38,21 @@ $(document).ready(function(){
      ref.parentNode.insertBefore(js, ref);
 }(document));
 
+now.newPlayer = function(players) {
+    var players_div = $('#players');
+    players_div.html('<tr><th>Name</th><th>Picture</th></tr>');
+    for (var id in players) {
+        var player = players[id];
+        if (player.name) {
+            var new_player = $('<tr></tr>');
+            players_div.append(new_player);
+            new_player.append($('<td>' + player.name + '</td>'));
+            new_player.append($('<td><img src="' +player.profile_pic + '"></td>'));
+        }
+    }
+}
+
+var start_client_game = function(){
 $(document).ready(function() {
     width = 10;
     height = 10;
@@ -52,7 +70,7 @@ $(document).ready(function() {
     last_selected = {x: 0, y: 0};
     lives = 10;
     game_over_text = null;
-    poke_ids;
+    poke_ids = Object();
 
     creeps = Object();
     update_creep_loop();
@@ -63,6 +81,19 @@ $(document).ready(function() {
         sync_pokes_loop();
     });
 });
+}
+
+var init_room = function() {
+    $(document).ready(function() {
+        $('#start_game').click(function() {
+            now.startGameForAll();
+        });
+    });
+}
+
+now.move_from_room_to_game = function() {
+    window.location.replace('/');
+}
 
 var game = function() {
     var api = Object();
@@ -87,7 +118,8 @@ now.client_create_creep = function(id) {
 }
 
 var create_creep = function(id, x, y, cur_index) {
-    var user_id = poke_ids[(Math.random() * poke_ids.length())];
+    /*
+    var user_id = poke_ids[(Math.random() * poke_ids.length)];
     var creep = paper.image('http://graph.facebook.com/' + user_id + '/picture?type=small', 
                            (x+.5) * tile_size, (y+.5) * tile_size, 47, 47);
     creep.attr({'fill': colors()['creep_color']});
@@ -100,6 +132,7 @@ var create_creep = function(id, x, y, cur_index) {
     api['cur_index'] = cur_index;
     creep.api = api;
     creeps[id] = creep;
+    */
 }
 
 var towers = function() {
