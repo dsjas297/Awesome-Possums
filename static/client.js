@@ -7,7 +7,7 @@ $(document).ready(function() {
     map = api.map;
     tiles_group = api.tiles_group;
     game_tick_ms = 100;
-    game_sync_ms = 1000;
+    game_sync_ms = 100;
     last_selected = {x: 0, y: 0};
 
     path = Object();
@@ -37,11 +37,10 @@ var initialize_path = function()
 }
 
 now.client_create_creep = function(id) {
-    create_creep(id, game().x_start, game().y_start);
+    create_creep(id, game().x_start, game().y_start, 0);
 }
 
-var create_creep = function(id, x, y) {
-    console.log(id, x, y);
+var create_creep = function(id, x, y, cur_index) {
     var creep = paper.circle(x * tile_size,
         y * tile_size, 
         tile_size/5);
@@ -52,7 +51,7 @@ var create_creep = function(id, x, y) {
     api['x'] = x;
     api['y'] = y;
     //cur_index is the last location on the path that the creep visited
-    api['cur_index'] = 0;
+    api['cur_index'] = cur_index;
     creep.api = api;
     creeps[id] = creep;
 }
@@ -154,6 +153,18 @@ var do_build_tower_menu = function(tile) {
     //cost for tower
 }
 
+var upgrade_tower_menu = function(tile) {
+    var menu = $('#tower_panel').append(
+        '<div class="menu"></div>');
+    var upgrade_tower_button = $(          // upgrade cost here!!!!!!!!
+        '<button class="btn btn-primary" id="upgrade_basic_tower" type="submit">Upgrade tower: ' + towers().basic_tower.cost + '</button>');
+    menu.append(upgrade_tower_button);
+    upgrade_tower_button.attr('tower_type', 'upgraded');
+    upgrade_tower_button.attr('x', tile.td.x);
+    upgrade_tower_button.attr('y', tile.td.y);
+    upgrade_tower_button.bind('click', server_upgrade_tower);
+}
+
 var server_build_tower = function() {
     now.buildTower(
         this.getAttribute('x'), 
@@ -171,6 +182,25 @@ now.client_build_tower = function(success, x, y, type, new_gold) {
         log('Could not build tower.');
     }
 }
+
+var server_upgrade_tower = function() {
+    now.buildTower(
+        this.getAttribute('x'), 
+        this.getAttribute('y'),
+        this.getAttribute('tower_type')
+    );
+}
+
+now.client_upgrade_tower = function(success, x, y, type, new_gold) {
+    if (success) {
+        log('Successfully upgraded tower: ' + type);
+        draw_tower(type, x, y);
+        update_gold(new_gold);
+    } else {
+        log('Could not upgrade tower.');
+    }
+}
+
 
 var update_gold = function(gold) {
     $('#player_gold').html(gold);
@@ -207,6 +237,10 @@ var select_terrain = function(e) {
         if (tile.td.tower == null) {
             tile.attr({'fill': colors()['selected_terrain']});
             do_build_tower_menu(tile);
+        }else
+        {
+            tile.attr({'fill': colors()['selected_terrain']});
+            upgrade_tower_menu(tile);
         }
     }
 }
@@ -297,8 +331,10 @@ var sync_state = function(server_creeps, lives, gold){
         destroy_creep(id);
     }
     creeps = Object();
-    for (var creep in server_creeps) {
-        create_creep(creep.id, creep.x, creep.y);
+    console.log(server_creeps);
+    for (var i in server_creeps) {
+        var creep = server_creeps[i];
+        create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
     }
     update_gold(gold);
     update_lives(lives);

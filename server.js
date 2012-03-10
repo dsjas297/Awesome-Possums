@@ -245,7 +245,7 @@ everyone.now.upgradeTower = function(x, y) {
 }
 
 everyone.now.syncState = function() {
-    this.now.client_sync_state( players[this.user.clientId].creeps );
+    this.now.client_sync_state( players[this.user.clientId].creeps, players[this.user.clientId].lives, players[this.user.clientId].goldCount );
 }
 
 var lastTime = new Date().getTime();
