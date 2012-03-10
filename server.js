@@ -179,9 +179,14 @@ function spawnUserCreep(userid, user) {
 
 function spawnAllCreeps() {
     for (var i in players) {
-        for (var j in players[i].enemies) {
-            spawnUserCreep(i, players[i]);
-        }
+        //for each player, spawn creeps to them based on who's in their poke list
+        nowjs.getClient(userid, function() {
+            for (var fb_player_id in this.now.fb_poke_ids) {
+                for (var j = 0; j < 1; j++) {
+                    spawnUserCreep(userid, players[i]);
+                }
+            }
+        });
     }
 }
 

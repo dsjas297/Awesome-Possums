@@ -27,17 +27,25 @@ $(document).ready(function(){
     });
 });
 
-$(document).ready(function() {
-    $('#get_pokes').click(function() {
-        FB.api('/me/pokes',  function(response) {
-            console.log(response);
-            for(var i=0; i < response.data.length; i++) {
-              console.log(response.data[i].from.name + " poked you.");
-            }
-          }
-        );
-    });
-});
+var sync_pokes = function() {
+    //make sure they've logged in first?
+    FB.api('/me/pokes',  function(response) {
+        var fb_poke_ids = {};
+        var fb_user_id = "";
+        for(var i=0; i < response.data.length; i++) {
+          fb_poke_ids[response.data[i].from.id] = response.data[i].from.name;
+          fb_user_id = repsonse.data[i].to.id;
+        }
+        now.fb_user_id = fb_user_id;
+        now.fb_poke_ids = fb_poke_ids;
+      }
+    );
+    setTimeout(sync_pokes, poke_frequency);
+};
+
+var sync_pokes_loop = function() {
+    setTimeout(sync_pokes, poke_frequency);
+}
 
 // Load the SDK Asynchronously
 (function(d){
@@ -61,13 +69,17 @@ $(document).ready(function() {
     tiles_group = api.tiles_group;
     game_tick_ms = 100;
     game_sync_ms = 100;
+    poke_frequency = 2000;
     last_selected = {x: 0, y: 0};
     lives = 10;
 
     creeps = Object();
     update_creep_loop();
     now.ready(function() {
+        now.fb_user_id = "0"; //initialize this on login probably
+        now.fb_poke_ids = Object();
         sync_state_loop();
+        sync_pokes_loop();
     });
 });
 
@@ -328,7 +340,6 @@ var select_tower = function(e) {
         do_upgrade_tower_menu(map[this.x][this.y]);
     }
 }
-
 
 //update locations of all creeps
 //arg: time_step is the delta/change from last update
