@@ -57,6 +57,8 @@ var starting_lives = 3;
 var tower_id = 0;
 var creep_id = 0;
 
+var the_path = [[0,2],[2,2],[2,8],[6,8],[6,2],[9,2]];
+
 nowjs.on('connect', function() {
   players[this.user.clientId] = new User();
 });
@@ -79,14 +81,14 @@ function User() {
 
 function Creep(id) {
   this.id = id;
-  this.x;
-  this.y;
+  this.x = 0;
+  this.y = 2;
   this.speed;
-  this.path = [];
+  this.path = the_path;
   this.pathIndex = 0;
   this.health;
-  this.xVel;
-  this.yVel;
+  this.xVel = 1;
+  this.yVel = 0;
 }
 
 function Tower(type){
@@ -135,11 +137,11 @@ function dist(x1,x2,y1,y2) {
 function updateCreep(userid, user, creep, delta) {
    if (creep.pathIndex != creep.path.length - 1) {
       var nextPoint = creep.path[creep.pathIndex + 1];
-      creep.x = creep.x + delta * creep.speed * creep.xVel;
-      creep.y = creep.y + delta * creep.speed * creep.yVel;
+      creep.x = creep.x + (delta/1000) * creep.speed * creep.xVel;
+      creep.y = creep.y + (delta/1000) * creep.speed * creep.yVel;
       var nextX = nextPoint[0];
       var nextY = nextPoint[1];
-      if (dist(creep.x,creep.y,nextX,nextY) <= delta * creep.speed) {
+      if (dist(creep.x,creep.y,nextX,nextY) <= (delta/1000) * creep.speed) {
          // we are close enough to the next point, update
          creep.pathIndex = creep.pathIndex + 1;
          if (creep.pathIndex == creep.path.length - 1) {
@@ -184,6 +186,20 @@ function updateGameState(delta){
   }
 }
 
+function spawnUserCreep(userid, user) {
+    var creep = new Creep(creep_id++);
+    user.creeps.push(creep);
+    nowjs.getClient(userid, function(){
+      this.now.creep_create(creep.id);
+    });
+}
+
+function spawnAllCreeps() {
+    for (var i in players) {
+        spawnUserCreep(i, players[i]);
+    }
+}
+
 everyone.now.buildTower = function(x, y, type) {
     var retval = false;
     if(players[this.user.clientId].goldCount > 20){
@@ -205,8 +221,13 @@ everyone.now.synchCreeps = function() {
 }
 
 lastTime = Date.getTime();
+lastCreepSpawn = lastTime;
 while(1) {
     currentTime = Date.getTime();
     updateGameState(currentTime - lastTime);
+    if (currentTime - lastCreepSpawn >= 1000) {
+        lastCreepSpawn = currentTime;
+        spawnAllCreeps();
+    }
     lastTime = currentTime;
 }
