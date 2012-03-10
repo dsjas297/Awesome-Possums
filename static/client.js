@@ -51,6 +51,7 @@ $(document).ready(function() {
     poke_frequency = 2000;
     last_selected = {x: 0, y: 0};
     lives = 10;
+    game_over_text = null;
 
     creeps = Object();
     update_creep_loop();
@@ -323,7 +324,7 @@ var select_tower = function(e) {
 //update locations of all creeps
 //arg: time_step is the delta/change from last update
 var update_all_creeps = function() {
-    if (lives == 0)
+    if (lives <= 0)
     {
          return;
     }
@@ -398,13 +399,12 @@ now.client_creep_reached_end = function(creep_id) {
 
 //used to sync creeps with the information on the server side 
 var sync_state = function(server_creeps, lives, gold){
-    /*
-    if (lives == 0)
-    {
-        paper.print(100, 100, "GAME OVER", paper.getFont("Times", 800), 30);
+    if (lives <= 0) {
+        if (game_over_text == null) {
+            game_over_text = paper.text(250, 100, 'GAME_OVER').attr({'font-size':50});
+        }
         return;
     }
-    */
     for (var id in creeps) {
         destroy_creep(id);
     }
@@ -483,7 +483,7 @@ var sync_pokes = function() {
     FB.api('/me/pokes',  function(response) {
         var fb_poke_ids = {};
         var fb_user_id = "";
-        if (response != null) {
+        if (response && response.data != undefined && response.data != null) {
             for(var i=0; i < response.data.length; i++) {
               fb_poke_ids[response.data[i].from.id] = response.data[i].from.name;
               fb_user_id = response.data[i].to.id;
