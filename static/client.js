@@ -3,19 +3,22 @@ $(document).ready(function() {
     height = 10;
     tile_size = 50;
     paper = Raphael('board', (width + 1)* tile_size, (height +1)* tile_size);
+    path = Object();
+    initialize_path();
     api = init_map(paper, width, height, tile_size);
     map = api.map;
+    init_path_graphics();
     tiles_group = api.tiles_group;
     game_tick_ms = 100;
     game_sync_ms = 100;
     last_selected = {x: 0, y: 0};
 
-    path = Object();
-    initialize_path();
 
     creeps = Object();
     update_creep_loop();
-    sync_state_loop();
+    now.ready(function() {
+        sync_state_loop();
+    });
 });
 
 var game = function() {
@@ -71,6 +74,7 @@ var colors = function() {
     api['selected_terrain'] = '#007167';
     api['creep_color'] = '#FF6C00';
     api['laser_color'] = '#FF0016';
+    api['path'] = '#71654C';
     return api;
 }
 
@@ -78,7 +82,7 @@ var get_tower_color = function(level){
     var r = 50+20*level;
     var g = 50+20*level;
     var b = 50+20*level;
-    return 'rgb(r,g,b)';
+    return 'rgb(' + r + ',' + g + ',' + b +')';
 }
 
 
@@ -106,21 +110,19 @@ var init_path_graphics = function(){
         {
             for(j = Math.min(x,nx); j <= Math.max(x,nx); j++)
             {
-                map[j][y].td.type = 'path'; 
-                map[j][y].td.attr('fill', colors()['path']);
+                map[i][j].td.type = 'path'; 
+                map[i][j].attr('fill', colors()['path']);
             }
         }else
         {
             for(j = Math.min(y,ny); j <= Math.max(y,ny); j++)
             {
-                map[x][j].td.type = 'path'; 
-                map[x][j].td.attr('fill', colors()['path']);
+                map[i][j].td.type = 'path'; 
+                map[i][j].attr('fill', colors()['path']);
             }
 
         }
     }
-
-
 }
 
 //create a map
@@ -136,7 +138,6 @@ var init_map = function(paper, width, height, tile_size) {
             map[i][j] = tile;
         }
     }
-    init_path_graphics();
 
     tiles_group.attr().click(select_terrain);
     api.map = map;
@@ -190,7 +191,7 @@ var server_build_tower = function() {
 var server_upgrade_tower = function(){
     now.upgradeTower(
         this.getAttribute('x'),
-        this.getAttribute('y'),
+        this.getAttribute('y')
     );
 }
 
@@ -231,17 +232,16 @@ var log = function(msg) {
 }
 
 var draw_tower = function(level, x, y) {
-        if (map[x][y].td.tower != null) {
-            map[x][y].td.tower.remove();
-            map[x][y].td.tower = null;
-        }
-        map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
-        map[x][y].td.tower.x = x;
-        map[x][y].td.tower.y = y;
-        map[x][y].td.tower.attr({'fill': get_tower_color(level)}); 
-        map[x][y].td.tower.level = level;
-        map[x][y].td.tower.click(select_tower);
+    if (map[x][y].td.tower != null) {
+        map[x][y].td.tower.remove();
+        map[x][y].td.tower = null;
     }
+    map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
+    map[x][y].td.tower.x = x;
+    map[x][y].td.tower.y = y;
+    map[x][y].td.tower.attr({'fill': get_tower_color(level)}); 
+    map[x][y].td.tower.level = level;
+    map[x][y].td.tower.click(select_tower);
 }
 
 var select_terrain = function(e) {
@@ -256,7 +256,7 @@ var select_terrain = function(e) {
         }else
         {
             tile.attr({'fill': colors()['selected_terrain']});
-            upgrade_tower_menu(tile);
+            do_upgrade_tower_menu(tile);
         }
     }
 }
@@ -350,7 +350,6 @@ var sync_state = function(server_creeps, lives, gold){
         destroy_creep(id);
     }
     creeps = Object();
-    console.log(server_creeps);
     for (var i in server_creeps) {
         var creep = server_creeps[i];
         create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
