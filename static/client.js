@@ -1,8 +1,8 @@
 $(document).ready(function() {
     width = 10;
     height = 10;
-    tile_size = 40;
-    paper = Raphael('board', width * tile_size, height * tile_size);
+    tile_size = 50;
+    paper = Raphael('board', (width + 1)* tile_size, (height +1)* tile_size);
     api = init_map(paper, width, height, tile_size);
     map = api.map;
     tiles_group = api.tiles_group;
@@ -13,6 +13,14 @@ $(document).ready(function() {
 
 });
 
+var game = function() {
+    var api = Object();
+    api['vel'] = 1;
+    api['x_start'] = 0;
+    api['y_start'] = 2;
+    return api;
+}
+
 now.create_creep = function(id, vel, x, y, path, cur_index) {
     create_creep(id, vel, x, y, path, cur_index);
 }
@@ -22,12 +30,11 @@ var create_creep = function(id,vel,x,y,path,cur_index) {
     creep.attr({'fill': colors()['creep_color']}).glow();
     var api = Object();
     api['id'] = id;
-    api['vel'] = vel;
-    api['x'] = x;
-    api['y'] = y;
-    api['path'] = path;
+    api['vel'] = game().vel;
+    api['x'] = game().x_start;
+    api['y'] = game().y_start;
     //cur_index is the last location on the path that the creep visited
-    api['cur_index'] = cur_index;
+    api['cur_index'] = 0;
     creep.api = api;
     creeps[id] = creep;
 }
@@ -49,7 +56,7 @@ var colors = function() {
     return api;
 }
 
-var create_tile = function(paper, i, j, tile_size) {
+var create_tile = function(i, j) {
     var tile = paper.rect(i*tile_size, j*tile_size,
        tile_size, tile_size); 
     tile.td = Object();
@@ -71,7 +78,7 @@ var init_map = function(paper, width, height, tile_size) {
     for (var i = 0; i < height ; i++) {
         map[i] = Array();
         for (var j = 0; j < width; j++) {
-            var tile = create_tile(paper, i, j, tile_size);
+            var tile = create_tile(i, j);
             tiles_group.push(tile);
             map[i][j] = tile;
         }
@@ -79,6 +86,7 @@ var init_map = function(paper, width, height, tile_size) {
     tiles_group.attr().click(select_terrain);
     api.map = map;
     api.tiles_group = tiles_group;
+
     return api;
 }
 
@@ -200,17 +208,18 @@ var update_all_creeps = function() {
         //cur_index is the last location on the path that the creep visited
         creep.api['cur_index'] = cur_index; 
     }
+    var t = setTimeout(update_all_creeps, game_tick_ms);
 }
 
 //used to sync creeps with the information on the server side 
 var sync_creeps = function(server_creeps){
     creeps = Object();
     for (var creep in server_creeps) {
-        create_creep(creep.id, creep.vel, creep.x, creep.y, creep.path, creep.cur_index);
+        create_creep(creep.id);
     }
 }
 
-var destroy_creep(id) {
+var destroy_creep = function(id) {
     var creep = creeps[id]; 
     creep.remove();
     delete creep[id];
@@ -220,13 +229,13 @@ var update_creep_loop = function() {
     var t = setTimeout(update_all_creeps, game_tick_ms);
 }
 
-var tower_fire(tower_x, tower_y, creep_id) {
+var tower_fire = function(tower_x, tower_y, creep_id) {
     var creep = creeps[creep_id];
     var laser = draw_laser(tower_x*tile_size, tower_y*tile_size, creep.x, creep.y);
     setTimeout(function(){laser.remove()}, 200);
 }
 
-var draw_laser(x, y, cx, cy) {
+var draw_laser = function(x, y, cx, cy) {
     var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
     laser.attr({'fill': colors()['laser_color']});
     return laser;
