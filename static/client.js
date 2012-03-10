@@ -7,7 +7,20 @@ $(document).ready(function() {
     map = api.map;
     tiles_group = api.tiles_group;
     last_selected = {x: 0, y: 0};
+    creeps = Object();
+    
 });
+
+var creep = function(id,vel,x,y,path,cur_index) {
+    var api = Object();
+    api['id'] = id;
+    api['vel'] = vel;
+    api['x'] = x;
+    api['y'] = y;
+    api['path'] = path;
+    //cur_index is the last location on the path that the creep visited
+    api['cur_index'] = cur_index; 
+}
 
 var towers = function() {
     var api = Object();
@@ -126,3 +139,68 @@ var select_tower = function(e) {
     last_selected = {x: this.x, y: this.y};
     map[this.x][this.y].attr({'fill': colors()['selected_terrain']});
 }
+
+
+//update locations of all creeps
+//arg: time_step is the delta/change from last update
+var update_all_creeps = function(time_step) {
+    
+    for (var creep in creeps) {
+        creep.x + 
+    
+        var next = creep['path'].(creep.cur_index+1);
+        
+        var x_dir, y_dir;
+        var x_diff = Math.abs(next.x - creep.x);
+        var y_diff = Math.abs(next.y - creep.y);
+        var to_next_loc; //distance to next location
+
+        if (x_diff > y_diff) 
+        {
+            to_next_loc = x_diff;
+            x_dir = next.x - creep.x; y_dir = 0;
+        }else
+        {
+            to_next_loc = y_diff;
+            y_dir = next.y - creep.y; x_dir = 0;
+        }
+
+        // if reached/past next location
+        if(to_next_loc < time_step * creep.vel) 
+        {
+            creep.x = next.x; creep.y = next.y;
+            creep.cur_index = creep.cur_index+1;
+        }else // move it closer
+        {
+            creep.x = creep.x + time_step * creep.vel * x_dir;
+            creep.y = creep.y + time_step * creep.vel * y_dir;
+        }
+    }
+
+
+    api['id'] = id;
+    api['vel'] = vel;
+    api['x'] = x;
+    api['y'] = y;
+    api['path'] = path;
+    //cur_index is the last location on the path that the creep visited
+    api['cur_index'] = cur_index; 
+
+}
+
+//used to sync creeps with the information on the server side 
+var sync_creeps = function(server_creeps){
+    creeps = server_creeps;
+}
+
+
+
+
+
+
+
+
+
+
+
+
