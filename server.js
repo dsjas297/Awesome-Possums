@@ -200,6 +200,10 @@ everyone.now.buildTower = function(x, y, type) {
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
+everyone.now.synchCreeps = function() {
+    this.now.synchCreeps( players[this.user.clientId].creeps );
+}
+
 lastTime = Date.getTime();
 while(1) {
     currentTime = Date.getTime();
