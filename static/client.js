@@ -147,6 +147,7 @@ var init_map = function(paper, width, height, tile_size) {
 }
 
 var do_build_tower_menu = function(tile) {
+    $('#tower_panel').html('');
     var menu = $('#tower_panel').append(
         '<div class="menu"></div>');
     var build_basic_button = $(
@@ -162,6 +163,7 @@ var do_build_tower_menu = function(tile) {
 
 var do_upgrade_tower_menu = function(tile) {
     if (tile.td.tower != null) {
+        $('#tower_panel').html('');
         var tower = tile.td.tower;
         var menu = $('#tower_panel').append(
             '<div class="menu"></div>');
