@@ -132,6 +132,7 @@ var init_map = function(paper, width, height, tile_size) {
             map[i][j] = tile;
         }
     }
+    init_path_graphics();
 
     tiles_group.attr().click(select_terrain);
     api.map = map;
@@ -319,8 +320,8 @@ var update_all_creeps = function() {
             }
             creep.api['x'] = creep_x;
             creep.api['y'] = creep_y;
-            creep.x = creep.api.x * tile_size;
-            creep.y = creep.api.y * tile_size;
+            creep.x = (creep.api.x+0.5)* tile_size;
+            creep.y = (creep.api.y+0.5) * tile_size;
             creep.animate(creep.attr({'cx': creep.api.x * tile_size,
                 'cy': creep.api.y * tile_size}));
             //cur_index is the last location on the path that the creep visited
