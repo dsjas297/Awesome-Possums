@@ -53,7 +53,9 @@ var map_width = 20;
 var players = [];
 
 var starting_gold = 1000;
+var starting_lives = 3;
 var tower_id = 0;
+var creep_id = 0;
 
 nowjs.on('connect', function() {
   players[this.user.clientId] = new User();
@@ -68,22 +70,27 @@ nowjs.on('disconnect', function() {
   }
 });
 
-function User(){
+function User() {
   this.goldCount = starting_gold;
+  this.lives     = starting_lives;
   this.towers = [];
   this.creeps = [];
 }
 
-function Creep(){
+function Creep(id) {
+  this.id = id;
   this.x;
   this.y;
-  this.velX = 0.2;
-  this.velY = 0.2;
+  this.speed;
+  this.path = [];
+  this.pathIndex = 0;
   this.health;
+  this.xVel;
+  this.yVel;
 }
 
 function Tower(type){
-  this.type;
+  this.type = type;
   this.x;
   this.y;
   this.timeSinceShot;
@@ -98,7 +105,7 @@ function inRange(creep, tower){
     return false;
 }
 
-function updateTower(tower, creeps){
+function updateTower(tower, creeps, delta) {
    tower.timeSinceShot++;
    if (tower.timeSinceShot > 100){
       for(var i in creeps){
@@ -115,9 +122,89 @@ function updateTower(tower, creeps){
    }
 }
 
-function updateCreep(creep){
-   creep.x = creep.x + creep.velX;
-   creep.y = creep.y + creep.velY;
+function dist(x1,x2,y1,y2) {
+    return Math.sqrt(Math.pow(x1-y1,2) + Math.pow(x2-y2,2));
+}
+
+function updateCreep(userid, user, creep, delta) {
+   if (creep.pathIndex != creep.path.length - 1) {
+             nextY = nextPoint[1];
+             var diffX = nextX - creep.x;
+             var diffY = nextY - creep.y;
+             var normFactor = Math.sqrt(diffX*diffX + diffY*diffY);
+             creep.xVel = diffX / normFactor;
+             creep.yVel = diffY / normFactor;
+         }
+      }
+   }
+}
+
+function updateGameState(){
+  for (var i in players[this.user.clientId].towers){
+      updateTower(players[this.user.clientId].towers[i]);
+  }
+  for (var i in players[this.user.clientId].creeps){
+      updateCreep(players[this.user.clientId].creeps[i]);
+  }
+  this.now.updateState(players[this.user.clientId]);
+}
+
+everyone.now.buildTower = function(x, y, type) {
+    var retval = false;
+    if(players[this.user.clientId].goldCount > 20){
+        retval = true;
+        var tid = tower_id++;
+        players[this.user.clientId].goldCount = players[this.user.clientId].goldCount - 20;
+        players[this.user.clientId].towers[tid] = new Tower("basic");
+        players[this.user.clientId].towers[tid].x = x;
+        players[this.user.clientId].towers[tid].y = y;
+        players[this.user.clientId].towers[tid].timeSinceShot = 0;
+        players[this.user.clientId].towers[tid].range = 50;
+    }
+    
+    this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
+}
+
+function gameLoop() {
+    updateGameState();
+}
+
+var t = setTimeout(gameLoop, 5000);
+      var nextPoint = creep.path[creep.pathIndex + 1];
+      creep.x = creep.x + delta * creep.speed * creep.xVel;
+      creep.y = creep.y + delta * creep.speed * creep.yVel;
+      var nextX = nextPoint[0];
+      var nextY = nextPoint[1];
+      if (dist(creep.x,creep.y,nextX,nextY) <= delta * creep.speed) {
+         // we are close enough to the next point, update
+         creep.pathIndex = creep.pathIndex + 1;
+         if (creep.pathIndex == creep.path.length - 1) {
+             // we have reached the end
+             for (var i in users.creeps) {
+                 if (users.creeps[i].id == creep.id) {
+                    delete creeps[i];
+                    break;
+                 }
+             }
+             user.lives = user.lives - 1;
+
+             // tell them a creep reached the end
+             nowjs.getClient(userid, function(){
+               this.now.creep_reached_end(creep.id);
+             });
+         } else {
+             // need to update xVel and yVel
+             nextPoint = creep.path[creep.pathIndex + 1];
+             nextX = nextPoint[0];
+             nextY = nextPoint[1];
+             var diffX = nextX - creep.x;
+             var diffY = nextY - creep.y;
+             var normFactor = Math.sqrt(diffX*diffX + diffY*diffY);
+             creep.xVel = diffX / normFactor;
+             creep.yVel = diffY / normFactor;
+         }
+      }
+   }
 }
 
 function updateGameState(){
@@ -146,9 +233,8 @@ everyone.now.buildTower = function(x, y, type) {
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
-function gameLoop(){
+function gameLoop() {
     updateGameState();
-    var t = setTimeout(gameLoop, 50);
 }
 
 var t = setTimeout(gameLoop, 5000);
