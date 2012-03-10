@@ -84,14 +84,14 @@ var do_build_tower_menu = function(tile) {
 }
 
 var server_build_tower = function() {
-    client_build_tower(true, 
+    now.buildTower(
         this.getAttribute('x'), 
         this.getAttribute('y'),
-        this.getAttribute('tower_type'), 
-        50);
+        this.getAttribute('tower_type')
+    );
 }
 
-var client_build_tower = function(success, x, y, type, new_gold) {
+now.client_build_tower = function(success, x, y, type, new_gold) {
     if (success) {
         log('Successfully built tower: ' + type);
         draw_tower(type, x, y);
