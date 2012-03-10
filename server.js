@@ -2,13 +2,13 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
  
-http.createServer(function (request, response) {
+var server = http.createServer(function (request, response) {
  
     console.log('request starting...');
      
     var filePath = '.' + request.url;
     if (filePath == './')
-        filePath = './index.htm';
+        filePath = './static/index.html';
          
     var extname = path.extname(filePath);
     var contentType = 'text/html';
@@ -28,6 +28,7 @@ http.createServer(function (request, response) {
                 if (error) {
                     response.writeHead(500);
                     response.end();
+                    console.log('error');
                 }
                 else {
                     response.writeHead(200, { 'Content-Type': contentType });
