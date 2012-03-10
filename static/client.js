@@ -3,19 +3,22 @@ $(document).ready(function() {
     height = 10;
     tile_size = 50;
     paper = Raphael('board', (width + 1)* tile_size, (height +1)* tile_size);
+    path = Object();
+    initialize_path();
     api = init_map(paper, width, height, tile_size);
     map = api.map;
+    init_path_graphics();
     tiles_group = api.tiles_group;
     game_tick_ms = 100;
     game_sync_ms = 100;
     last_selected = {x: 0, y: 0};
 
-    path = Object();
-    initialize_path();
 
     creeps = Object();
     update_creep_loop();
-    sync_state_loop();
+    now.ready(function() {
+        sync_state_loop();
+    });
 });
 
 var game = function() {
@@ -67,11 +70,21 @@ var colors = function() {
     var api = Object();
     api['terrain'] = '#569993';
     api['basic_tower'] = '#29FF73';
+    api['upgraded_tower'] = '#311011';
     api['selected_terrain'] = '#007167';
     api['creep_color'] = '#FF6C00';
     api['laser_color'] = '#FF0016';
+    api['path'] = '#71654C';
     return api;
 }
+
+var get_tower_color = function(level){
+    var r = 50+20*level;
+    var g = 50+20*level;
+    var b = 50+20*level;
+    return 'rgb(' + r + ',' + g + ',' + b +')';
+}
+
 
 var create_tile = function(i, j) {
     var tile = paper.rect(i*tile_size, j*tile_size,
@@ -95,27 +108,21 @@ var init_path_graphics = function(){
         var y = path[i]['y'], ny = path[i+1]['y'];
         if (x != nx)
         {
-            if (nx > x) dir = 1; 
-            else dir = -1;
-            for(j = x; j <= nx; j += dir)
+            for(j = Math.min(x,nx); j <= Math.max(x,nx); j++)
             {
-                map[i][j].td.type = 'path'; 
-                map[i][j].td.attr('fill', colors()['path']);
+                map[j][y].td.type = 'path'; 
+                map[j][y].attr('fill', colors()['path']);
             }
         }else
         {
-            if (ny > y) dir = 1; 
-            else dir = -1;
-            for(j = y; j <= ny; j += dir)
+            for(j = Math.min(y,ny); j <= Math.max(y,ny); j++)
             {
-                map[i][j].td.type = 'path'; 
-                map[i][j].td.attr('fill', colors()['path']);
+                map[x][j].td.type = 'path'; 
+                map[x][j].attr('fill', colors()['path']);
             }
 
         }
     }
-
-
 }
 
 //create a map
@@ -140,6 +147,7 @@ var init_map = function(paper, width, height, tile_size) {
 }
 
 var do_build_tower_menu = function(tile) {
+    $('#tower_panel').html('');
     var menu = $('#tower_panel').append(
         '<div class="menu"></div>');
     var build_basic_button = $(
@@ -153,16 +161,25 @@ var do_build_tower_menu = function(tile) {
     //cost for tower
 }
 
-var upgrade_tower_menu = function(tile) {
-    var menu = $('#tower_panel').append(
-        '<div class="menu"></div>');
-    var upgrade_tower_button = $(          // upgrade cost here!!!!!!!!
-        '<button class="btn btn-primary" id="upgrade_basic_tower" type="submit">Upgrade tower: ' + towers().basic_tower.cost + '</button>');
-    menu.append(upgrade_tower_button);
-    upgrade_tower_button.attr('tower_type', 'upgraded');
-    upgrade_tower_button.attr('x', tile.td.x);
-    upgrade_tower_button.attr('y', tile.td.y);
-    upgrade_tower_button.bind('click', server_upgrade_tower);
+var do_upgrade_tower_menu = function(tile) {
+    if (tile.td.tower != null) {
+        $('#tower_panel').html('');
+        var tower = tile.td.tower;
+        var menu = $('#tower_panel').append(
+            '<div class="menu"></div>');
+        var upgrade_button = $(
+            '<button class="btn btn-primary" id="upgrade_basic_tower" type="submit">Upgrade tower (cost: ' + 10*Math.pow(2, tower.level) + ')</button>');
+        var tower_level = $(
+            '<h3> Tower level: <span id="tower_level">' + 
+            tower.level + '</span></h3>'
+        );
+        menu.append(tower_level);
+        menu.append(upgrade_button);
+        upgrade_button.attr('tower_type', 'basic');
+        upgrade_button.attr('x', tile.td.x);
+        upgrade_button.attr('y', tile.td.y);
+        upgrade_button.bind('click', server_upgrade_tower);
+    }
 }
 
 var server_build_tower = function() {
@@ -173,34 +190,33 @@ var server_build_tower = function() {
     );
 }
 
+var server_upgrade_tower = function(){
+    now.upgradeTower(
+        this.getAttribute('x'),
+        this.getAttribute('y')
+    );
+}
+
 now.client_build_tower = function(success, x, y, type, new_gold) {
     if (success) {
         log('Successfully built tower: ' + type);
-        draw_tower(type, x, y);
+        draw_tower(1, x, y);
         update_gold(new_gold);
+        do_upgrade_tower_menu(map[x][y]);
     } else {
         log('Could not build tower.');
     }
 }
 
-var server_upgrade_tower = function() {
-    now.buildTower(
-        this.getAttribute('x'), 
-        this.getAttribute('y'),
-        this.getAttribute('tower_type')
-    );
-}
-
-now.client_upgrade_tower = function(success, x, y, type, new_gold) {
+now.client_upgrade_tower = function(success, x, y, level, new_gold) {
     if (success) {
-        log('Successfully upgraded tower: ' + type);
-        draw_tower(type, x, y);
+        log('Successfully upgraded tower');
+        draw_tower(level, x, y);
         update_gold(new_gold);
     } else {
         log('Could not upgrade tower.');
     }
 }
-
 
 var update_gold = function(gold) {
     $('#player_gold').html(gold);
@@ -215,33 +231,37 @@ var decrement_lives = function() {
 }
 
 var log = function(msg) {
-    $('#log').html(msg);
+    $('#log').html(new Date().toLocaleTimeString() + ' ' + msg);
 }
 
-var draw_tower = function(type, x, y) {
-    if (type == 'basic') {
-        map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
-        map[x][y].td.tower.x = x;
-        map[x][y].td.tower.y = y;
-        map[x][y].td.tower.attr({'fill': colors()['basic_tower']}); 
-        map[x][y].td.tower.click(select_tower);
+var draw_tower = function(level, x, y) {
+    if (map[x][y].td.tower != null) {
+        map[x][y].td.tower.remove();
+        map[x][y].td.tower = null;
     }
+    map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
+    map[x][y].td.tower.x = x;
+    map[x][y].td.tower.y = y;
+    map[x][y].td.tower.attr({'fill': get_tower_color(level)}); 
+    map[x][y].td.tower.level = level;
+    map[x][y].td.tower.click(select_tower);
 }
 
 var select_terrain = function(e) {
+    var tile = this;
+    if (tile.td.type != 'terrain') {
+        return;
+    }
     $('#tower_panel').html('');
     map[last_selected.x][last_selected.y].attr({'fill': colors()['terrain']});
     last_selected = {x: this.td.x, y: this.td.y};
-    var tile = this;
-    if (tile.td.type == 'terrain') {
-        if (tile.td.tower == null) {
-            tile.attr({'fill': colors()['selected_terrain']});
-            do_build_tower_menu(tile);
-        }else
-        {
-            tile.attr({'fill': colors()['selected_terrain']});
-            upgrade_tower_menu(tile);
-        }
+    if (tile.td.tower == null) {
+        tile.attr({'fill': colors()['selected_terrain']});
+        do_build_tower_menu(tile);
+    }else
+    {
+        tile.attr({'fill': colors()['selected_terrain']});
+        do_upgrade_tower_menu(tile);
     }
 }
 
@@ -250,6 +270,9 @@ var select_tower = function(e) {
     map[last_selected.x][last_selected.y].attr({'fill': colors()['terrain']});
     last_selected = {x: this.x, y: this.y};
     map[this.x][this.y].attr({'fill': colors()['selected_terrain']});
+    if (map[this.x][this.y].td.tower != null) {
+        do_upgrade_tower_menu(map[this.x][this.y]);
+    }
 }
 
 
@@ -305,13 +328,13 @@ var update_all_creeps = function() {
             }
             creep.api['x'] = creep_x;
             creep.api['y'] = creep_y;
-            creep.x = creep.api.x * tile_size;
-            creep.y = creep.api.y * tile_size;
+            creep.x = (creep.api.x+0.5)* tile_size;
+            creep.y = (creep.api.y+0.5) * tile_size;
             creep.animate(creep.attr({'cx': creep.api.x * tile_size,
                 'cy': creep.api.y * tile_size}));
             //cur_index is the last location on the path that the creep visited
         } catch (error) {
-            console.log(error);
+            //console.log(error);
         }
     }
     var t = setTimeout(update_all_creeps, game_tick_ms);
@@ -331,7 +354,6 @@ var sync_state = function(server_creeps, lives, gold){
         destroy_creep(id);
     }
     creeps = Object();
-    console.log(server_creeps);
     for (var i in server_creeps) {
         var creep = server_creeps[i];
         create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
@@ -377,7 +399,7 @@ var tower_fire = function(tower_x, tower_y, creep_id) {
 }
 
 var draw_laser = function(x, y, cx, cy) {
-    var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
+    var laser = paper.path("M" + (x+.5)*tile_size + " " + (y+.5) *tile_size + "L" + (cx+.5)*tile_size + " " + (cy+.5)*tile_size);
     laser.attr({'fill': colors()['laser_color'],
                 'stroke-width': 3});
     return laser;

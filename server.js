@@ -58,6 +58,8 @@ var tower_id = 0;
 var creep_id = 0;
 var cur_level = 1;
 
+var game_start = false;
+
 var the_path = [[0,2],[2,2],[2,8],[6,8],[6,2],[9,2]];
 
 nowjs.on('connect', function() {
@@ -249,19 +251,40 @@ everyone.now.syncState = function() {
     this.now.client_sync_state( players[this.user.clientId].creeps, players[this.user.clientId].lives, players[this.user.clientId].goldCount );
 }
 
+everyone.now.addCreep = function() {
+    for (var i in players) {
+        if(i != this.user.clientId){
+            var creep = new Creep(creep_id++);
+            players[i].creeps.push(creep);
+            nowjs.getClient(i, function(){
+                this.now.client_create_creep(creep.id);
+            });
+        }
+    }
+}
+
+everyone.now.gameStart = function() {
+    game_start = true;
+}
+
 var lastTime = new Date().getTime();
 var lastCreepSpawn = lastTime;
 var lastLevelChange = 0;
 function loop() {
-    var currentTime = new Date().getTime();
-    updateGameState(currentTime - lastTime);
-    if (currentTime - lastCreepSpawn >= 1000) {
-        lastCreepSpawn = currentTime;
-        spawnAllCreeps();
+    if(game_start){
+        var currentTime = new Date().getTime();
+        updateGameState(currentTime - lastTime);
+        if (currentTime - lastCreepSpawn >= 1000) {
+            lastCreepSpawn = currentTime;
+            spawnAllCreeps();
+        }
+        lastLevelChange += currentTime - lastTime;
+        if (lastLevelChange >= 60000) {
+            level++;
+            lastLevelChange = 0;
+        }
+        lastTime = currentTime;
     }
-    lastLevelChange += currentTime - lastTime;
-    if (lastLevelChange >= 60000) level++;
-    lastTime = currentTime;
     setTimeout(loop,40);
 }
 
