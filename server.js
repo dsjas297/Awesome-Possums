@@ -3,49 +3,19 @@ var path = require('path');
 var http = require('http');
 var fs = require('fs');
 
-var server = http.createServer(function (request, response) {
-    console.log('request starting...');
-     
-    var filePath = '.' + request.url;
-    if (filePath == './')
-        filePath = './static/index.html';
-         
-    var extname = path.extname(filePath);
-    var contentType = 'text/html';
-    switch (extname) {
-        case '.js':
-            contentType = 'text/javascript';
-            break;
-        case '.css':
-            contentType = 'text/css';
-            break;
-    }
-     
-    path.exists(filePath, function(exists) {
-     
-        if (exists) {
-            fs.readFile(filePath, function(error, content) {
-                if (error) {
-                    response.writeHead(500);
-                    response.end();
-                    console.log('error');
-                }
-                else {
-                    response.writeHead(200, { 'Content-Type': contentType });
-                    response.end(content, 'utf-8');
-                }
-            });
-        }
-        else {
-            response.writeHead(404);
-            response.end();
-        }
-    });
-     
-}).listen(8080);
+var express = require('express');
+var app = express.createServer();
+
+// routing
+app.get('/', function (req, res) {
+    res.sendfile(__dirname + '/static/index.html');
+});
+ 
+app.use("/static", express.static(__dirname + '/static'));
+app.listen(8080);
 
 var nowjs = require("now");
-var everyone = nowjs.initialize(server);
+var everyone = nowjs.initialize(app);
 
 var map_height = 20;
 var map_width = 20;

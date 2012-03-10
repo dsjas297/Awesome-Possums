@@ -1,3 +1,53 @@
+window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '191378074298387', // App ID
+      channelUrl : '//sohanjain.com:8080/static/channel.html', // Channel File
+      status     : true, // check login status
+      cookie     : true, // enable cookies to allow the server to access the session
+      xfbml      : true  // parse XFBML
+    });
+
+// Additional initialization code here
+};
+
+$(document).ready(function(){
+    $('#login').click(function() {
+       console.log('hello');
+       FB.login(function(response) {
+       if (response.authResponse) {
+         console.log('Welcome!  Fetching your information.... ');
+         FB.api('/me', function(response) {
+           console.log(response);
+           console.log('Good to see you, ' + response.name + '.');
+         });
+       } else {
+         console.log('User cancelled login or did not fully authorize.');
+       }
+     }, {scope: 'read_mailbox'});
+    });
+});
+
+$(document).ready(function() {
+    $('#get_pokes').click(function() {
+        FB.api('/me/pokes',  function(response) {
+            console.log(response);
+            for(var i=0; i < response.data.length; i++) {
+              console.log(response.data[i].from.name + " poked you.");
+            }
+          }
+        );
+    });
+});
+
+// Load the SDK Asynchronously
+(function(d){
+     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement('script'); js.id = id; js.async = true;
+     js.src = "//connect.facebook.net/en_US/all.js";
+     ref.parentNode.insertBefore(js, ref);
+}(document));
+
 $(document).ready(function() {
     width = 10;
     height = 10;
@@ -12,6 +62,7 @@ $(document).ready(function() {
     game_tick_ms = 100;
     game_sync_ms = 100;
     last_selected = {x: 0, y: 0};
+    lives = 10;
 
     creeps = Object();
     update_creep_loop();
