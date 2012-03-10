@@ -3,7 +3,10 @@ $(document).ready(function() {
     height = 20;
     tile_size = 30;
     paper = Raphael('board', width * tile_size, height * tile_size);
-    map = init_map(paper, width, height, tile_size);
+    api = init_map(paper, width, height, tile_size);
+    map = api.map;
+    tiles_group = api.tiles_group;
+    last_selected = {x: 0, y: 0};
 });
 
 var towers = function() {
@@ -14,8 +17,11 @@ var towers = function() {
 }
 
 var colors = function() {
-    var api = function();
-
+    var api = Object();
+    api['terrain'] = '#569993';
+    api['basic_tower'] = '#29FF73';
+    api['selected_terrain'] = '#007167';
+    return api;
 }
 
 var create_tile = function(paper, i, j, tile_size) {
@@ -24,7 +30,7 @@ var create_tile = function(paper, i, j, tile_size) {
     tile.td = Object();
     tile.td.type = 'terrain';
     if (tile.td.type == 'terrain') {
-        tile.attr('fill', '#569993');
+        tile.attr('fill', colors()['terrain']);
     }
     tile.td.x = i;
     tile.td.y = j;
@@ -47,7 +53,8 @@ var init_map = function(paper, width, height, tile_size) {
     }
     tiles_group.attr().click(select_terrain);
     api.map = map;
-    return map;
+    api.tiles_group = tiles_group;
+    return api;
 }
 
 var do_build_tower_menu = function(tile) {
@@ -57,7 +64,6 @@ var do_build_tower_menu = function(tile) {
         '<button class="btn btn-primary" id="build_basic_tower" type="submit">Build Basic Tower: ' + towers().basic_tower.cost + '</button>');
     menu.append(build_basic_button);
     build_basic_button.attr('tower_type', 'basic');
-    console.log(tile);
     build_basic_button.attr('x', tile.td.x);
     build_basic_button.attr('y', tile.td.y);
     build_basic_button.bind('click', server_build_tower);
@@ -67,9 +73,9 @@ var do_build_tower_menu = function(tile) {
 
 var server_build_tower = function() {
     client_build_tower(true, 
-        this.getAttribute('tower_type'), 
         this.getAttribute('x'), 
         this.getAttribute('y'),
+        this.getAttribute('tower_type'), 
         50);
 }
 
@@ -93,21 +99,30 @@ var log = function(msg) {
 
 var draw_tower = function(type, x, y) {
     if (type == 'basic') {
-        console.log(map[x][y].td);
         map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
-        map[x][y].td.tower.attr({'fill': '#29FF73'}); 
+        map[x][y].td.tower.x = x;
+        map[x][y].td.tower.y = y;
+        map[x][y].td.tower.attr({'fill': colors()['basic_tower']}); 
+        map[x][y].td.tower.click(select_tower);
     }
 }
 
 var select_terrain = function(e) {
     $('#tower_panel').html('');
+    map[last_selected.x][last_selected.y].attr({'fill': colors()['terrain']});
+    last_selected = {x: this.td.x, y: this.td.y};
     var tile = this;
     if (tile.td.type == 'terrain') {
         if (tile.td.tower == null) {
-            tile.attr({'fill': '#007167'});
+            tile.attr({'fill': colors()['selected_terrain']});
             do_build_tower_menu(tile);
-        } else {
-            do_tower_status_menu(tile);
         }
     }
+}
+
+var select_tower = function(e) {
+    $('#tower_panel').html('');
+    map[last_selected.x][last_selected.y].attr({'fill': colors()['terrain']});
+    last_selected = {x: this.x, y: this.y};
+    map[this.x][this.y].attr({'fill': colors()['selected_terrain']});
 }
