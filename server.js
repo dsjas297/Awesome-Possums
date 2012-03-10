@@ -128,48 +128,6 @@ function dist(x1,x2,y1,y2) {
 
 function updateCreep(userid, user, creep, delta) {
    if (creep.pathIndex != creep.path.length - 1) {
-             nextY = nextPoint[1];
-             var diffX = nextX - creep.x;
-             var diffY = nextY - creep.y;
-             var normFactor = Math.sqrt(diffX*diffX + diffY*diffY);
-             creep.xVel = diffX / normFactor;
-             creep.yVel = diffY / normFactor;
-         }
-      }
-   }
-}
-
-function updateGameState(){
-  for (var i in players[this.user.clientId].towers){
-      updateTower(players[this.user.clientId].towers[i]);
-  }
-  for (var i in players[this.user.clientId].creeps){
-      updateCreep(players[this.user.clientId].creeps[i]);
-  }
-  this.now.updateState(players[this.user.clientId]);
-}
-
-everyone.now.buildTower = function(x, y, type) {
-    var retval = false;
-    if(players[this.user.clientId].goldCount > 20){
-        retval = true;
-        var tid = tower_id++;
-        players[this.user.clientId].goldCount = players[this.user.clientId].goldCount - 20;
-        players[this.user.clientId].towers[tid] = new Tower("basic");
-        players[this.user.clientId].towers[tid].x = x;
-        players[this.user.clientId].towers[tid].y = y;
-        players[this.user.clientId].towers[tid].timeSinceShot = 0;
-        players[this.user.clientId].towers[tid].range = 50;
-    }
-    
-    this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
-}
-
-function gameLoop() {
-    updateGameState();
-}
-
-var t = setTimeout(gameLoop, 5000);
       var nextPoint = creep.path[creep.pathIndex + 1];
       creep.x = creep.x + delta * creep.speed * creep.xVel;
       creep.y = creep.y + delta * creep.speed * creep.yVel;
