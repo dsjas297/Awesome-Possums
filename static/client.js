@@ -17,12 +17,25 @@ $(document).ready(function(){
        if (response.authResponse) {
          console.log('Welcome!  Fetching your information.... ');
          FB.api('/me', function(response) {
+           console.log(response);
            console.log('Good to see you, ' + response.name + '.');
          });
        } else {
          console.log('User cancelled login or did not fully authorize.');
        }
-     });
+     }, {scope: 'read_mailbox'});
+    });
+});
+
+$(document).ready(function() {
+    $('#get_pokes').click(function() {
+        FB.api('/me/pokes',  function(response) {
+            console.log(response);
+            for(var i=0; i < response.data.length; i++) {
+              console.log(response.data[i].from.name + " poked you.");
+            }
+          }
+        );
     });
 });
 
