@@ -47,6 +47,7 @@ now.newPlayer = function(players) {
             var new_player = $('<tr></tr>');
             players_div.append(new_player);
             new_player.append($('<td>' + player.name + '</td>'));
+            new_player.append($('<td>' + 'http://www.facebook.com/' + id + '</td>'));
             new_player.append($('<td><img src="' +player.profile_pic + '"></td>'));
         }
     }
