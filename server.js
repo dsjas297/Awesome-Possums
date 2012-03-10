@@ -105,17 +105,23 @@ function inRange(creep, tower){
     return false;
 }
 
-function updateTower(tower, creeps, delta) {
-   tower.timeSinceShot++;
-   if (tower.timeSinceShot > 100){
+function updateTower(userid, tower, creeps, delta) {
+   tower.timeSinceShot = tower.timeSinceShot + delta;
+   if (tower.timeSinceShot > 500){
       for(var i in creeps){
           if( inRange(creep, tower) ){
+              // tell them to fire a tower
+              nowjs.getClient(userid, function(){
+                  this.now.tower_fire(tower.x, tower.y, creeps[i].id)
+              });
               tower.timeSinceShot = 0;
               creeps[i].health--;
               if(creeps[i].health <=0){
                   delete creeps[i];
+                  nowjs.getClient(userid, function(){
+                      this.now.delete_creep(creeps[i].id)
+                  });
               }
-              this.now.fireTower(tower.x, tower.y, creeps[i].x, creeps[i].y)
               break;
           }
       }
@@ -165,14 +171,17 @@ function updateCreep(userid, user, creep, delta) {
    }
 }
 
-function updateGameState(){
-  for (var i in players[this.user.clientId].towers){
-      updateTower(players[this.user.clientId].towers[i]);
+function updateGameState(delta){
+  for (var i in players){
+      for(var j in players[i].towers){
+          updateTower(i, players[i].towers[j], players[i].creeps, delta);
+      }
   }
-  for (var i in players[this.user.clientId].creeps){
-      updateTower(players[this.user.clientId].creeps[i]);
+  for (var i in players){
+      for(var j in players[i].creeps){
+          updateCreep(i, players[i], players[i].creeps[j], delta);
+      }
   }
-  this.now.updateState(players[this.user.clientId]);
 }
 
 everyone.now.buildTower = function(x, y, type) {
@@ -191,8 +200,9 @@ everyone.now.buildTower = function(x, y, type) {
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
-function gameLoop() {
-    updateGameState();
+lastTime = Date.getTime();
+while(1) {
+    currentTime = Date.getTime();
+    updateGameState(currentTime - lastTime);
+    lastTime = currentTime;
 }
-
-var t = setTimeout(gameLoop, 5000);
