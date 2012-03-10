@@ -53,7 +53,7 @@ var map_width = 20;
 var players = [];
 
 var starting_gold = 1000;
-var starting_lives = 3;
+var starting_lives = 5;
 var tower_id = 0;
 var creep_id = 0;
 everyone.now.level = 1;
@@ -159,6 +159,12 @@ function updateCreep(userid, user, creep, delta) {
                  }
              }
              user.lives = user.lives - 1;
+
+             if(user.lives == 0)
+             {
+                 delete players[this.user.clientId];
+                 return;
+             }
 
              // tell them a creep reached the end
              nowjs.getClient(userid, function(){
