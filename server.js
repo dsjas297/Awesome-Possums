@@ -22,7 +22,8 @@ var map_width = 20;
 
 var players = [];
 
-var starting_gold = 1000;
+var kill_creep_gold = 4;
+var starting_gold = 100;
 var starting_lives = 5;
 var tower_id = 0;
 var creep_id = 0;
@@ -101,8 +102,10 @@ function updateTower(userid, tower, creeps, delta) {
               if(creeps[i].health <=0){
                   var id = creeps[i].id;
                   delete creeps[i];
+                  players[userid].goldCount = players[userid].goldCount+5;
                   nowjs.getClient(userid, function(){
-                      this.now.client_destroy_creep(id)
+                      this.now.client_destroy_creep(id);
+                      this.now.update_gold_count(players[userid].goldCount);
                   });
               }
               break;
