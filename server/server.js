@@ -12,6 +12,8 @@ var map_width = 100;
 
 var players = [];
 
+var starting_gold = 1000;
+
 
 nowjs.on('connect', function() {
   players[this.user.clientId] = new User();
@@ -27,7 +29,7 @@ nowjs.on('disconnect', function() {
 });
 
 function User(){
-  this.goldCount = 100;
+  this.goldCount = starting_gold;
   this.towers = [];
   this.creeps = [];
 }
@@ -48,6 +50,7 @@ function Tower(type){
   this.range;
 }
 
+// Synchronous updates
 function updateTower(tower, creeps){
    tower.timeSinceShot++;
    if (tower.timeSinceShot > 100){
@@ -77,5 +80,17 @@ function updateGameState(){
   for (var i in players[this.user.clientId].creeps){
       updateTower(players[this.user.clientId].creeps[i]);
   }
-  this.user.updateState(players[this.user.clientId]);
+  this.now.updateState(players[this.user.clientId]);
 }
+
+everyone.now.buildTower = function(x, y, type) {
+    retval = false
+    if(players[this.user.clientId].goldCount > 20){
+        retval = true;
+        players[this.user.clientId].goldCount = players[this.user.clientId].goldCount - 20;
+    }
+    
+    return [retval, x, y, type, players[this.user.clientId].goldCount];
+}
+
+
