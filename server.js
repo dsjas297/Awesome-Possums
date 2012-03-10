@@ -182,6 +182,7 @@ function updateGameState(delta){
 }
 
 function spawnUserCreep(userid, user) {
+    console.log('spawn user creep', userid, user);
     var creep = new Creep(creep_id++);
     everyone.now.addCreep(creep.id);
     user.creeps.push(creep);
@@ -191,13 +192,21 @@ function spawnUserCreep(userid, user) {
 }
 
 function spawnAllCreeps() {
+    console.log(players);
     for (var i in players) {
         //for each player, spawn creeps to them based on who's in their poke list
         nowjs.getClient(i, function() {
-            spawnUserCreep(i, players[i]);
+            //spawnUserCreep(i, players[i]);
             for (var fb_player_id in this.now.fb_poke_ids) {
-                for (var j = 0; j < 1; j++) {
-                    spawnUserCreep(i, players[i]);
+                console.log('fb player id ' + fb_player_id);
+                for (var j in players) {
+                    var user_player = players[j];
+                    if (!user_player.fb_id)
+                        continue;
+                    console.log(user_player.fb_id, fb_player_id);
+                    if (user_player.fb_id == fb_player_id) {
+                        spawnUserCreep(i, players[i]);
+                    }
                 }
             }
         });
@@ -229,7 +238,6 @@ everyone.now.joinRoom = function (fb_id, profile_pic, name) {
       players[this.user.clientId].fb_id = fb_id;
       players[this.user.clientId].profile_pic = profile_pic;
       players[this.user.clientId].name = name;
-      console.log(players);
       everyone.now.newPlayer(players);
 }
 

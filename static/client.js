@@ -92,7 +92,12 @@ var init_room = function() {
 }
 
 now.move_from_room_to_game = function() {
-    window.location.replace('/');
+    console.log('move_from game to room');
+    $('#join_game').removeClass('active');
+    $('#join_game').addClass('hidden');
+    $('#game_container').removeClass('hidden');
+    $('#game_container').addClass('active');
+    start_client_game();
 }
 
 var game = function() {
@@ -118,7 +123,6 @@ now.client_create_creep = function(id) {
 }
 
 var create_creep = function(id, x, y, cur_index) {
-    /*
     var user_id = poke_ids[(Math.random() * poke_ids.length)];
     var creep = paper.image('http://graph.facebook.com/' + user_id + '/picture?type=small', 
                            (x+.5) * tile_size, (y+.5) * tile_size, 47, 47);
@@ -132,7 +136,6 @@ var create_creep = function(id, x, y, cur_index) {
     api['cur_index'] = cur_index;
     creep.api = api;
     creeps[id] = creep;
-    */
 }
 
 var towers = function() {
@@ -491,17 +494,21 @@ now.client_tower_fire = function(tower_x, tower_y, creep_id) {
 }
 
 var tower_fire = function(tower_x, tower_y, creep_id) {
-    var creep = creeps[creep_id];
-    x = ((parseFloat(tower_x) + .5) * tile_size);
-    y = ((parseFloat(tower_y) + .5) * tile_size);
-    cx = ((parseFloat(creep.api.x)+.5) * tile_size);
-    cy = ((parseFloat(creep.api.y)+.5) * tile_size);
-    //var laser = draw_laser((tower_x+.5)*tile_size, (tower_y+.5)*tile_size, (creep.api.x+.5)*tile_size, (creep.api.y+.5)*tile_size);
-    console.log(x, y, cx, cy);
-    var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
-    laser.attr({'fill': colors()['laser_color'],
-                'stroke-width': 3});
-    setTimeout(function(){laser.remove()}, 200);
+    try {
+        var creep = creeps[creep_id];
+        x = ((parseFloat(tower_x) + .5) * tile_size);
+        y = ((parseFloat(tower_y) + .5) * tile_size);
+        cx = ((parseFloat(creep.api.x)+.5) * tile_size);
+        cy = ((parseFloat(creep.api.y)+.5) * tile_size);
+        //var laser = draw_laser((tower_x+.5)*tile_size, (tower_y+.5)*tile_size, (creep.api.x+.5)*tile_size, (creep.api.y+.5)*tile_size);
+        console.log(x, y, cx, cy);
+        var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
+        laser.attr({'fill': colors()['laser_color'],
+                    'stroke-width': 3});
+        setTimeout(function(){laser.remove()}, 200);
+    } catch(error) {
+
+    }
 }
 
 var draw_laser = function(x, y, cx, cy) {
@@ -525,6 +532,8 @@ var sync_pokes = function() {
             now.fb_user_id = fb_user_id;
             now.fb_poke_ids = fb_poke_ids;
             poke_ids = fb_poke_ids;
+            console.log(now.fb_poke_ids);
+            console.log(fb_poke_ids);
         }
       }
     );
@@ -533,4 +542,8 @@ var sync_pokes = function() {
 
 var sync_pokes_loop = function() {
     setTimeout(sync_pokes, poke_frequency);
+}
+
+now.update_gold_count = function(goldCount) {
+    update_gold(goldCount);
 }

@@ -1,8 +1,11 @@
 <html lang="en">
   <head>
     <style type="text/css">
+      th{text-align:left}
+      #players{min-height:300px}
       #game_container{margin-left:0; margin-top:10}
       .hidden{display:none}
+      .active{display:block}
     </style>
   </head>
   <body>
@@ -15,14 +18,30 @@
       </div>
     </div>
 
-    <div class="container">
-      <div id = "join_game">
-        <button id="login" class="btn">Login</button>
-        <button id="get_pokes" class='btn'>get_pokes</button>
+    <div class="container" >
+      <div id="join_game" class="active">
+        <div class="row span12">
+            <button id="login" class="span12 btn btn-primary"> LOG IN TO FACEBOOK TO PLAY THIS SWEET GAME </button>
+        </div>
+
+        <div class="row span12">
+            <table class="span12 table-striped">
+                <tbody id="players">
+                    <tr>
+                        <th>Name</th>
+                        <th>Picture</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row span12">
+            <button id="start_game" class="span12 btn btn-primary"> START THE GAME ONCE EVERYONE HAS JOINED </button>
+        </div>
+
         <div id="fb-root"></div>
-        <div id="test"></div>
       </div>
-      <div id="game_container" class="">
+
+      <div id="game_container" class="hidden">
         <div class="row span12">
           <div id="board" class="span 6">
       
@@ -55,8 +74,8 @@
   <script type="text/javascript" src="/static/bootstrap/js/bootstrap.js"></script>
   <script type="text/javascript" src="/static/client.js"></script>
   <script type="text/javascript">
-    start_client_game();
-    </script>
+    init_room();
+  </script>
   <link href="/static/bootstrap/css/bootstrap.css" rel="stylesheet">
   </body>
 
