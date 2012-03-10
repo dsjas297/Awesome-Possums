@@ -8,10 +8,15 @@ $(document).ready(function() {
     tiles_group = api.tiles_group;
     last_selected = {x: 0, y: 0};
     creeps = Object();
-    
 });
 
-var creep = function(id,vel,x,y,path,cur_index) {
+now.create_creep = function(id, vel, x, y, path, cur_index) {
+    create_creep(id, vel, x, y, path, cur_index);
+}
+
+var create_creep = function(id,vel,x,y,path,cur_index) {
+    var creep = paper.circle(x, y, tile_size/5);
+    creep.attr({'fill': colors()['creep_color']}).glow();
     var api = Object();
     api['id'] = id;
     api['vel'] = vel;
@@ -19,7 +24,9 @@ var creep = function(id,vel,x,y,path,cur_index) {
     api['y'] = y;
     api['path'] = path;
     //cur_index is the last location on the path that the creep visited
-    api['cur_index'] = cur_index; 
+    api['cur_index'] = cur_index;
+    creep.api = api;
+    creeps[id] = creep;
 }
 
 var towers = function() {
@@ -34,6 +41,7 @@ var colors = function() {
     api['terrain'] = '#569993';
     api['basic_tower'] = '#29FF73';
     api['selected_terrain'] = '#007167';
+    api['creep_color'] = '#CC5DC0';
     return api;
 }
 
