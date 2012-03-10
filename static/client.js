@@ -16,7 +16,9 @@ $(document).ready(function() {
 
     creeps = Object();
     update_creep_loop();
-    sync_state_loop();
+    now.ready(function() {
+        sync_state_loop();
+    });
 });
 
 var game = function() {
@@ -72,8 +74,17 @@ var colors = function() {
     api['selected_terrain'] = '#007167';
     api['creep_color'] = '#FF6C00';
     api['laser_color'] = '#FF0016';
+    api['path'] = '#71654C';
     return api;
 }
+
+var get_tower_color = function(level){
+    var r = 50+20*level;
+    var g = 50+20*level;
+    var b = 50+20*level;
+    return 'rgb(' + r + ',' + g + ',' + b +')';
+}
+
 
 var create_tile = function(i, j) {
     var tile = paper.rect(i*tile_size, j*tile_size,
@@ -116,8 +127,6 @@ var init_path_graphics = function(){
 
         }
     }
-
-
 }
 
 //create a map
@@ -234,7 +243,7 @@ var draw_tower = function(level, x, y) {
     map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
     map[x][y].td.tower.x = x;
     map[x][y].td.tower.y = y;
-    map[x][y].td.tower.attr({'fill': colors()['basic_tower']}); 
+    map[x][y].td.tower.attr({'fill': get_tower_color(level)}); 
     map[x][y].td.tower.level = level;
     map[x][y].td.tower.click(select_tower);
 }
@@ -345,7 +354,6 @@ var sync_state = function(server_creeps, lives, gold){
         destroy_creep(id);
     }
     creeps = Object();
-    console.log(server_creeps);
     for (var i in server_creeps) {
         var creep = server_creeps[i];
         create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
