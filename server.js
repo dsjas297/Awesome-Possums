@@ -63,19 +63,20 @@ function User() {
   this.name = "";
 }
 
-function Creep(id) {
+function Creep(id, image) {
   this.id = id;
   this.x = 0;
   this.y = 2;
-  this.speed = everyone.now.level;
+  this.speed = 1 + everyone.now.level/4;
   this.path = the_path;
   this.pathIndex = 0;
-  this.health = 10 + 10*everyone.now.level;
+  this.health = 3 + 4*everyone.now.level;
   this.xVel = 1;
   this.yVel = 0;
+  this.image = image;
 }
 
-function Tower(type){
+function Tower(type) {
   this.type = type;
   this.x;
   this.y;
@@ -181,13 +182,13 @@ function updateGameState(delta){
   }
 }
 
-function spawnUserCreep(userid, user) {
+function spawnUserCreep(userid, user, creep_pic) {
     console.log('spawn user creep', userid, user);
-    var creep = new Creep(creep_id++);
-    everyone.now.addCreep(creep.id);
+    var creep = new Creep(creep_id++, creep_pic);
+    //everyone.now.addCreep(creep.id);
     user.creeps.push(creep);
     nowjs.getClient(userid, function(){
-      this.now.client_create_creep(creep.id);
+      this.now.client_create_creep(creep.id, creep_pic);
     });
 }
 
@@ -200,12 +201,11 @@ function spawnAllCreeps() {
             for (var fb_player_id in this.now.fb_poke_ids) {
                 console.log('fb player id ' + fb_player_id);
                 for (var j in players) {
-                    var user_player = players[j];
-                    if (!user_player.fb_id)
+                    var other_player = players[j];
+                    if (!other_player.fb_id) 
                         continue;
-                    console.log(user_player.fb_id, fb_player_id);
-                    if (user_player.fb_id == fb_player_id) {
-                        spawnUserCreep(i, players[i]);
+                    if (other_player.fb_id == fb_player_id) {
+                        spawnUserCreep(i, players[i], other_player.profile_pic);
                     }
                 }
             }
@@ -263,7 +263,7 @@ everyone.now.upgradeTower = function(x, y) {
         retval = true;
         players[this.user.clientId].goldCount -= upgradeCost;
         tower.level++;
-        tower.damage++;
+        tower.damage = tower.damage * 1.5;
     }
     
     this.now.client_upgrade_tower(retval, x, y, tower.level, players[this.user.clientId].goldCount);
@@ -273,6 +273,8 @@ everyone.now.syncState = function() {
     this.now.client_sync_state( players[this.user.clientId].creeps, players[this.user.clientId].lives, players[this.user.clientId].goldCount );
 }
 
+
+/*
 everyone.now.addCreep = function() {
     for (var i in players) {
         if(i != this.user.clientId){
@@ -284,6 +286,7 @@ everyone.now.addCreep = function() {
         }
     }
 }
+*/
 
 everyone.now.gameStart = function() {
     game_start = true;

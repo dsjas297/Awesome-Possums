@@ -118,14 +118,13 @@ var initialize_path = function()
     path['5'] = {x: 9, y: 2};
 }
 
-now.client_create_creep = function(id) {
-    create_creep(id, game().x_start, game().y_start, 0);
+now.client_create_creep = function(id, pic) {
+    create_creep(id, game().x_start, game().y_start, 0, pic);
 }
 
-var create_creep = function(id, x, y, cur_index) {
-    var user_id = poke_ids[(Math.random() * poke_ids.length)];
-    var creep = paper.image('http://graph.facebook.com/' + user_id + '/picture?type=small', 
-                           (x+.5) * tile_size, (y+.5) * tile_size, 47, 47);
+var create_creep = function(id, x, y, cur_index, pic) {
+    var creep = paper.image(pic, 
+       parseFloat(x) * tile_size, parseFloat(y) * tile_size, 47, 47);
     creep.attr({'fill': colors()['creep_color']});
     var api = Object();
     api['id'] = id;
@@ -449,7 +448,7 @@ var sync_state = function(server_creeps, lives, gold){
     for (var i in server_creeps) {
         var creep = server_creeps[i];
         if (creep != null) {
-            create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
+            create_creep(creep.id, creep.x, creep.y, creep.pathIndex, creep.image);
         }
     }
     update_gold(gold);
