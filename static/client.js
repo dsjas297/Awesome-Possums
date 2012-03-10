@@ -78,9 +78,9 @@ var colors = function() {
 }
 
 var get_tower_color = function(level){
-    var r = 50+20*level;
-    var g = 50+20*level;
-    var b = 50+20*level;
+    var r = 180-20*level;
+    var g = 0;
+    var b = 0;
     return 'rgb(' + r + ',' + g + ',' + b +')';
 }
 
