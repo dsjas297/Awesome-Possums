@@ -67,6 +67,7 @@ var colors = function() {
     var api = Object();
     api['terrain'] = '#569993';
     api['basic_tower'] = '#29FF73';
+    api['upgraded_tower'] = '#311011';
     api['selected_terrain'] = '#007167';
     api['creep_color'] = '#FF6C00';
     api['laser_color'] = '#FF0016';
@@ -159,7 +160,7 @@ var do_upgrade_tower_menu = function(tile) {
         var menu = $('#tower_panel').append(
             '<div class="menu"></div>');
         var upgrade_button = $(
-            '<button class="btn btn-primary" id="upgrade_basic_tower" type="submit">Upgrade tower (cost: ' + towers().basic_tower.cost*tower.level + ')</button>');
+            '<button class="btn btn-primary" id="upgrade_basic_tower" type="submit">Upgrade tower (cost: ' + 10*Math.pow(2, tower.level) + ')</button>');
         var tower_level = $(
             '<h3> Tower level: <span id="tower_level">' + 
             tower.level + '</span></h3>'
@@ -185,27 +186,24 @@ var server_upgrade_tower = function(){
     now.upgradeTower(
         this.getAttribute('x'),
         this.getAttribute('y'),
-        this.getAttribute('tower_type')
     );
 }
 
 now.client_build_tower = function(success, x, y, type, new_gold) {
     if (success) {
         log('Successfully built tower: ' + type);
-        draw_tower(type, x, y);
+        draw_tower(1, x, y);
         update_gold(new_gold);
     } else {
         log('Could not build tower.');
     }
 }
 
-now.client_upgrade_tower = function(success, x, y, type, new_gold) {
+now.client_upgrade_tower = function(success, x, y, level, new_gold) {
     if (success) {
-        log('Successfully upgraded tower: ' + type);
-        if (map[x][y].td.tower != null) {
-            map[x][y].td.tower.level += 1;
-            $('#tower_level').html(map[x][y].td.tower.level);
-        }
+        log('Successfully upgraded tower');
+        draw_tower(level, x, y);
+        update_gold(new_gold);
     } else {
         log('Could not upgrade tower.');
     }
@@ -227,13 +225,16 @@ var log = function(msg) {
     $('#log').html(new Date().toDateString() + ' ' + msg);
 }
 
-var draw_tower = function(type, x, y) {
-    if (type == 'basic') {
+var draw_tower = function(level, x, y) {
+        if (map[x][y].td.tower != null) {
+            map[x][y].td.tower.remove();
+            map[x][y].td.tower = null;
+        }
         map[x][y].td.tower = paper.circle(x*tile_size + tile_size/2, y*tile_size + tile_size/2, tile_size/3);
         map[x][y].td.tower.x = x;
         map[x][y].td.tower.y = y;
         map[x][y].td.tower.attr({'fill': colors()['basic_tower']}); 
-        map[x][y].td.tower.level = 1;
+        map[x][y].td.tower.level = level;
         map[x][y].td.tower.click(select_tower);
     }
 }
@@ -247,6 +248,10 @@ var select_terrain = function(e) {
         if (tile.td.tower == null) {
             tile.attr({'fill': colors()['selected_terrain']});
             do_build_tower_menu(tile);
+        }else
+        {
+            tile.attr({'fill': colors()['selected_terrain']});
+            upgrade_tower_menu(tile);
         }
     }
 }

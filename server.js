@@ -97,6 +97,8 @@ function Tower(type){
   this.y;
   this.timeSinceShot;
   this.range;
+  this.damage;
+  this.level;
 }
 
 // Synchronous updates
@@ -117,7 +119,7 @@ function updateTower(userid, tower, creeps, delta) {
                   this.now.client_tower_fire(tower.x, tower.y, creeps[i].id)
               });
               tower.timeSinceShot = 0;
-              creeps[i].health--;
+              creeps[i].health -= tower.damage;
               if(creeps[i].health <=0){
                   var id = creeps[i].id;
                   delete creeps[i];
@@ -212,18 +214,55 @@ everyone.now.buildTower = function(x, y, type) {
         players[this.user.clientId].towers[tid].y = y;
         players[this.user.clientId].towers[tid].timeSinceShot = 0;
         players[this.user.clientId].towers[tid].range = 50;
+        players[this.user.clientId].towers[tid].damage = 1;
+        players[this.user.clientId].towers[tid].level = 1;
     }
     
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
+}
+
+everyone.now.upgradeTower = function(x, y) {
+    var retval = false;
+    var tower;
+    for (var i in players[this.user.clientId].towers) {
+        if (players[this.user.clientId].towers[i].x == x &&
+            players[this.user.clientId].towers[i].y == y) {
+          tower = players[this.user.clientId].towers[i];
+          break;
+        }
+    }
+
+    var upgradeCost = 10 * Math.pow(2,tower.level);
+
+    if (players[this.user.clientId].goldCount > upgradeCost) {
+        retval = true;
+        players[this.user.clientId].goldCount -= upgradeCost;
+        tower.level++;
+        tower.damage++;
+    }
+    
+    this.now.client_upgrade_tower(retval, x, y, tower.level, players[this.user.clientId].goldCount);
 }
 
 everyone.now.syncState = function() {
     this.now.client_sync_state( players[this.user.clientId].creeps, players[this.user.clientId].lives, players[this.user.clientId].goldCount );
 }
 
+everyone.now.addCreep = function() {
+    for (var i in players) {
+        if(i != this.user.clientId){
+            var creep = new Creep(creep_id++);
+            players[i].creeps.push(creep);
+            nowjs.getClient(i, function(){
+                this.now.client_create_creep(creep.id);
+            });
+        }
+    }
+}
+
 var lastTime = new Date().getTime();
 var lastCreepSpawn = lastTime;
-function loop(){
+function loop() {
     var currentTime = new Date().getTime();
     updateGameState(currentTime - lastTime);
     if (currentTime - lastCreepSpawn >= 1000) {
