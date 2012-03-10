@@ -8,6 +8,7 @@ $(document).ready(function() {
     tiles_group = api.tiles_group;
     last_selected = {x: 0, y: 0};
     creeps = Object();
+    
 });
 
 var creep = function(id,vel,x,y,path,cur_index) {
@@ -141,11 +142,31 @@ var select_tower = function(e) {
 
 
 //update locations of all creeps
-var update_all_creeps = function() {
+//arg: time_step is the delta/change from last update
+var update_all_creeps = function(time_step) {
     
-    creeps.id = server_creeps.id.
+    for (var creep in creeps) {
+        creep.x + 
     
+        var next = creep['path'].(creep.cur_index+1);
+        //distance to next location
+        var to_next_loc = Math.max(Math.abs(next.x - creep.x), Math.abs(next.y - creep.y)); 
+        // if reached/past next location
+        if(to_next_loc < time_step * creep.vel) 
+        {
+            creep.x = next.x; creep.y = next.y;
+            creep.cur_index = creep.cur_index+1;
+        }
+    }
 
+
+    api['id'] = id;
+    api['vel'] = vel;
+    api['x'] = x;
+    api['y'] = y;
+    api['path'] = path;
+    //cur_index is the last location on the path that the creep visited
+    api['cur_index'] = cur_index; 
 
 }
 
