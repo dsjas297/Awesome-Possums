@@ -1,14 +1,52 @@
-var html = require('fs').readFileSync(__dirname+'/test.html');
-var server = require('http').createServer(function(req, res){
-  res.end(html);
-});
-server.listen(8080);
+var html = require('fs').readFileSync(__dirname+'/static/index.html');
+var path = require('path');
+
+var server = http.createServer(function (request, response) {
+    console.log('request starting...');
+     
+    var filePath = '.' + request.url;
+    if (filePath == './')
+        filePath = './static/index.html';
+         
+    var extname = path.extname(filePath);
+    var contentType = 'text/html';
+    switch (extname) {
+        case '.js':
+            contentType = 'text/javascript';
+            break;
+        case '.css':
+            contentType = 'text/css';
+            break;
+    }
+     
+    path.exists(filePath, function(exists) {
+     
+        if (exists) {
+            fs.readFile(filePath, function(error, content) {
+                if (error) {
+                    response.writeHead(500);
+                    response.end();
+                    console.log('error');
+                }
+                else {
+                    response.writeHead(200, { 'Content-Type': contentType });
+                    response.end(content, 'utf-8');
+                }
+            });
+        }
+        else {
+            response.writeHead(404);
+            response.end();
+        }
+    });
+     
+}).listen(8080);
 
 var nowjs = require("now");
 var everyone = nowjs.initialize(server);
 
-var map_height = 100;
-var map_width = 100;
+var map_height = 20;
+var map_width = 20;
 
 var players = [];
 
@@ -52,7 +90,7 @@ function Tower(type){
 
 // Synchronous updates
 function inRange(creep, tower){
-    if( Math.sqrt( Math.pow((creep.x - tower.x),2) + Math.pow((creep.y - tower.y),2) ) < 50 ){
+    if( Math.sqrt( Math.pow((creep.x - tower.x),2) + Math.pow((creep.y - tower.y),2) ) < tower.range ){
         return true;
     }
     return false;
@@ -99,9 +137,10 @@ everyone.now.buildTower = function(x, y, type) {
         players[this.user.clientId].towers[tower_id++].x = x;
         players[this.user.clientId].towers[tower_id++].y = y;
         players[this.user.clientId].towers[tower_id++].timeSinceShot = 0;
+        players[this.user.clientId].towers[tower_id++].range = 50;
     }
     
-    return [retval, x, y, type, players[this.user.clientId].goldCount];
+    this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
 function gameLoop(){
