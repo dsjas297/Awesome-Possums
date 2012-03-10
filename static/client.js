@@ -52,7 +52,6 @@ $(document).ready(function() {
     last_selected = {x: 0, y: 0};
     lives = 10;
     game_over_text = null;
-    poke_ids;
 
     creeps = Object();
     update_creep_loop();
@@ -87,8 +86,7 @@ now.client_create_creep = function(id) {
 }
 
 var create_creep = function(id, x, y, cur_index) {
-    var user_id = poke_ids[(Math.random() * poke_ids.length())];
-    var creep = paper.image('http://graph.facebook.com/' + user_id + '/picture?type=small', 
+    var creep = paper.image('http://profile.ak.fbcdn.net/hprofile-ak-snc4/195630_1000_5535330_t.jpg', 
                            (x+.5) * tile_size, (y+.5) * tile_size, 47, 47);
     creep.attr({'fill': colors()['creep_color']});
     var api = Object();
@@ -491,7 +489,6 @@ var sync_pokes = function() {
             }
             now.fb_user_id = fb_user_id;
             now.fb_poke_ids = fb_poke_ids;
-            poke_ids = fb_poke_ids;
         }
       }
     );
