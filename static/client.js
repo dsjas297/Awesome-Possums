@@ -229,11 +229,19 @@ var update_all_creeps = function() {
         if (x_diff > y_diff) 
         {
             to_next_loc = x_diff;
-            x_dir = next.x - creep_x; y_dir = 0;
+            if (next.x > creep_x)
+                x_dir = 1+Math.pow(next.x-creep_x, 2.0)/100;
+            else
+                x_dir = -(1+Math.pow(next.x-creep_x, 2.0)/100);
+            y_dir = 0;
         }else
         {
             to_next_loc = y_diff;
-            y_dir = next.y - creep_y; x_dir = 0;
+            if (next.y > creep_y)
+                y_dir = 1+ Math.pow(next.y-creep_y, 2.0)/100;
+            else
+                y_dir = -(1 + Math.pow(next.y-creep_y, 2.0)/100);
+            x_dir = 0;
         }
 
         // if reached/past next location
