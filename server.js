@@ -3,49 +3,54 @@ var path = require('path');
 var http = require('http');
 var fs = require('fs');
 
-var server = http.createServer(function (request, response) {
-    console.log('request starting...');
-     
-    var filePath = '.' + request.url;
-    if (filePath == './')
-        filePath = './static/index.html';
-         
-    var extname = path.extname(filePath);
-    var contentType = 'text/html';
-    switch (extname) {
-        case '.js':
-            contentType = 'text/javascript';
-            break;
-        case '.css':
-            contentType = 'text/css';
-            break;
+var express = require('express');
+var app = express.createServer(),
+  fb = require('facebook-js')
+  , app = express.createServer(
+      express.bodyParser()
+    , express.cookieParser()
+    , express.session({ secret: 'pizza cat balls' })
+    );
+
+app.get('/login', function (req, res) {
+  res.redirect(fb.getAuthorizeUrl({
+    client_id: '191378074298387',
+    redirect_uri: 'http://devsohanjain.com/',
+    scope: 'offline_access,publish_stream'
+  }));
+});
+
+app.get('/auth', function (req, res) {
+  fb.getAccessToken('191378074298387', '7fbb2a101e9472cda286b5d7b3b42b02', req.param('code'), 'http://devsohanjain.com/auth', function (error, access_token, refresh_token) {
+    res.json({access_token: access_token, refresh_token: refresh_token});
+  });
+});
+
+app.post('/message', function (req, res) {
+  fb.apiCall('POST', '/me/feed',
+    {access_token: req.param('access_token'), message: req.param('message')},
+    function (error, response, body) {
+      res.json({body: body});
     }
-     
-    path.exists(filePath, function(exists) {
-     
-        if (exists) {
-            fs.readFile(filePath, function(error, content) {
-                if (error) {
-                    response.writeHead(500);
-                    response.end();
-                    console.log('error');
-                }
-                else {
-                    response.writeHead(200, { 'Content-Type': contentType });
-                    response.end(content, 'utf-8');
-                }
-            });
-        }
-        else {
-            response.writeHead(404);
-            response.end();
-        }
-    });
-     
-}).listen(8080);
+  );
+});
+
+app.get('/messages', function (req, res) {
+  var stream = fb.apiCall('GET', '/me/feed', {access_token: req.param('access_token'), message: req.param('message')});
+  stream.pipe(fs.createWriteStream('backup_feed.txt'));
+});
+
+
+// routing
+app.get('/', function (req, res) {
+    res.sendfile(__dirname + '/static/index.html');
+});
+ 
+app.use("/static", express.static(__dirname + '/static'));
+app.listen(8080);
 
 var nowjs = require("now");
-var everyone = nowjs.initialize(server);
+var everyone = nowjs.initialize(app);
 
 var map_height = 20;
 var map_width = 20;

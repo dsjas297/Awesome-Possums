@@ -1,3 +1,23 @@
+$(document).ready( function() {
+  $("#login").click(function() {
+    $.ajax({
+        url: '/login',
+        dataType: "jsonp",
+        //jsonpCallback: "_testcb",
+        //cache: false,
+        //timeout: 5000,
+        success: function(data) {
+            $("#test").append(data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR, textStatus, errorThrown);
+        }
+    });
+});;
+
+});
+
+
 $(document).ready(function() {
     width = 10;
     height = 10;
