@@ -7,7 +7,19 @@ $(document).ready(function() {
     map = api.map;
     tiles_group = api.tiles_group;
     last_selected = {x: 0, y: 0};
+    creeps = Object();
 });
+
+var creep = function(id,vel,x,y,path,cur_index) {
+    var api = Object();
+    api['id'] = id;
+    api['vel'] = vel;
+    api['x'] = x;
+    api['y'] = y;
+    api['path'] = path;
+    //cur_index is the last location on the path that the creep visited
+    api['cur_index'] = cur_index; 
+}
 
 var towers = function() {
     var api = Object();
@@ -126,3 +138,30 @@ var select_tower = function(e) {
     last_selected = {x: this.x, y: this.y};
     map[this.x][this.y].attr({'fill': colors()['selected_terrain']});
 }
+
+
+//update locations of all creeps
+var update_all_creeps = function() {
+    
+    creeps.id = server_creeps.id.
+    
+
+
+}
+
+//used to sync creeps with the information on the server side 
+var sync_creeps = function(server_creeps){
+    creeps = server_creeps;
+}
+
+
+
+
+
+
+
+
+
+
+
+
