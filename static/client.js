@@ -110,15 +110,15 @@ var init_path_graphics = function(){
         {
             for(j = Math.min(x,nx); j <= Math.max(x,nx); j++)
             {
-                map[i][j].td.type = 'path'; 
-                map[i][j].attr('fill', colors()['path']);
+                map[j][y].td.type = 'path'; 
+                map[j][y].attr('fill', colors()['path']);
             }
         }else
         {
             for(j = Math.min(y,ny); j <= Math.max(y,ny); j++)
             {
-                map[i][j].td.type = 'path'; 
-                map[i][j].attr('fill', colors()['path']);
+                map[x][j].td.type = 'path'; 
+                map[x][j].attr('fill', colors()['path']);
             }
 
         }
