@@ -86,7 +86,7 @@ function Creep(id) {
   this.speed = 1;
   this.path = the_path;
   this.pathIndex = 0;
-  this.health;
+  this.health = 10;
   this.xVel = 1;
   this.yVel = 0;
 }
@@ -114,14 +114,15 @@ function updateTower(userid, tower, creeps, delta) {
           if( inRange(creeps[i], tower) ){
               // tell them to fire a tower
               nowjs.getClient(userid, function(){
-                  this.now.tower_fire(tower.x, tower.y, creeps[i].id)
+                  this.now.client_tower_fire(tower.x, tower.y, creeps[i].id)
               });
               tower.timeSinceShot = 0;
               creeps[i].health--;
               if(creeps[i].health <=0){
+                  var id = creeps[i].id;
                   delete creeps[i];
                   nowjs.getClient(userid, function(){
-                      this.now.delete_creep(creeps[i].id)
+                      this.now.client_destroy_creep(id)
                   });
               }
               break;
@@ -216,8 +217,8 @@ everyone.now.buildTower = function(x, y, type) {
     this.now.client_build_tower(retval, x, y, type, players[this.user.clientId].goldCount);
 }
 
-everyone.now.synchCreeps = function() {
-    this.now.client_synch_creeps( players[this.user.clientId].creeps );
+everyone.now.syncState = function() {
+    this.now.client_sync_state( players[this.user.clientId].creeps );
 }
 
 var lastTime = new Date().getTime();
