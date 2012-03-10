@@ -80,6 +80,7 @@ function User() {
   this.lives     = starting_lives;
   this.towers = [];
   this.creeps = [];
+  this.enemies = [];
 }
 
 function Creep(id) {
@@ -208,7 +209,9 @@ function spawnUserCreep(userid, user) {
 
 function spawnAllCreeps() {
     for (var i in players) {
-        spawnUserCreep(i, players[i]);
+        for (var j in players[i].enemies) {
+            spawnUserCreep(i, players[i]);
+        }
     }
 }
 
