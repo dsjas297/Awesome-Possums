@@ -98,9 +98,9 @@ var colors = function() {
 }
 
 var get_tower_color = function(level){
-    var r = 50+20*level;
-    var g = 50+20*level;
-    var b = 50+20*level;
+    var r = 180-20*level;
+    var g = 0;
+    var b = 0;
     return 'rgb(' + r + ',' + g + ',' + b +')';
 }
 
@@ -302,6 +302,10 @@ var select_tower = function(e) {
 //update locations of all creeps
 //arg: time_step is the delta/change from last update
 var update_all_creeps = function() {
+    if (lives == 0)
+    {
+         return;
+    }
     time_step = game_tick_ms; 
     for (var id in creeps) {
         try {
@@ -373,6 +377,11 @@ now.client_creep_reached_end = function(creep_id) {
 
 //used to sync creeps with the information on the server side 
 var sync_state = function(server_creeps, lives, gold){
+    if (lives == 0)
+    {
+        paper.print(100, 100, "GAME OVER", paper.getFont("Times", 800), 30);
+        return;
+    }
     for (var id in creeps) {
         destroy_creep(id);
     }
