@@ -220,10 +220,10 @@ everyone.now.synchCreeps = function() {
     this.now.synchCreeps( players[this.user.clientId].creeps );
 }
 
-lastTime = Date.getTime();
+lastTime = new Date().getTime();
 lastCreepSpawn = lastTime;
 while(1) {
-    currentTime = Date.getTime();
+    currentTime = new Date().getTime();
     updateGameState(currentTime - lastTime);
     if (currentTime - lastCreepSpawn >= 1000) {
         lastCreepSpawn = currentTime;
