@@ -26,20 +26,22 @@ var game = function() {
 
 var initialize_path = function()
 {
-    path.0 = {x: 0, y: 2};
-    path.1 = {x: 2, y: 2};
-    path.2 = {x: 2, y: 8};
-    path.3 = {x: 6, y: 8};
-    path.4 = {x: 6, y: 2};
-    path.5 = {x: 9, y: 2};
+    path['0'] = {x: 0, y: 2};
+    path['1'] = {x: 2, y: 2};
+    path['2'] = {x: 2, y: 8};
+    path['3'] = {x: 6, y: 8};
+    path['4'] = {x: 6, y: 2};
+    path['5'] = {x: 9, y: 2};
 }
 
-now.create_creep = function(id, vel, x, y, path, cur_index) {
-    create_creep(id, vel, x, y, path, cur_index);
+now.client_create_creep = function(id) {
+    create_creep(id);
 }
 
-var create_creep = function(id,vel,x,y,cur_index) {
-    var creep = paper.circle(x, y, tile_size/5);
+var create_creep = function(id) {
+    var creep = paper.circle(game().x_start * tile_size,
+        game().y_start * tile_size, 
+        tile_size/5);
     creep.attr({'fill': colors()['creep_color']}).glow();
     var api = Object();
     api['id'] = id;
@@ -171,6 +173,10 @@ var update_gold = function(gold) {
     $('#player_gold').html(gold);
 }
 
+var decrement_lives = function() {
+    $('#player_lives').html($('#player_lives').html() - 1);
+}
+
 var log = function(msg) {
     $('#log').html(msg);
 }
@@ -213,12 +219,13 @@ var update_all_creeps = function() {
     for (var id in creeps) {
         var creep = creeps[id];
     
-        if (creep.api.cur_index == creep['api']['path'].length - 1) {
+        if (creep.api.cur_index == path.length - 1) {
             //we're at the last position, remove the creep
             destroy_creep(id);
+            continue;
         }
-        var next = creep['api']['path'][creep.api.cur_index+1];
-        
+        var next = path[creep.api.cur_index];
+         
         var x_dir, y_dir;
         var creep_x = creep.api.x;
         var creep_y = creep.api.y;
@@ -237,23 +244,33 @@ var update_all_creeps = function() {
         }
 
         // if reached/past next location
-        if(to_next_loc < time_step * creep.vel) 
+        if(to_next_loc < time_step/1000 * creep.api.vel) 
         {
             creep_x = next.x; creep_y = next.y;
-            creep.cur_index = creep.cur_index+1;
+            creep.api.cur_index = creep.api.cur_index+1;
         }else // move it closer
         {
-            creep_x = creep_x + time_step * creep.api.vel * x_dir;
-            creep_y = creep_y + time_step * creep.api.vel * y_dir;
+            creep_x = creep_x + time_step/1000 * creep.api.vel * x_dir;
+            creep_y = creep_y + time_step/1000 * creep.api.vel * y_dir;
+            console.log(creep_x, creep_y);
         }
         creep.api['x'] = creep_x;
         creep.api['y'] = creep_y;
         creep.x = creep.api.x * tile_size;
         creep.y = creep.api.y * tile_size;
+        creep.animate(creep.attr({'cx': creep.api.x * tile_size,
+            'cy': creep.api.y * tile_size}));
         //cur_index is the last location on the path that the creep visited
-        creep.api['cur_index'] = cur_index; 
     }
     var t = setTimeout(update_all_creeps, game_tick_ms);
+}
+
+now.client_synch_creeps = function(server_creeps) {
+    sync_creeps(server_creeps);
+}
+
+now.client_creep_reached_end = function(creep_id) {
+    creep_reached_end(creep_id);
 }
 
 //used to sync creeps with the information on the server side 
@@ -262,6 +279,11 @@ var sync_creeps = function(server_creeps){
     for (var creep in server_creeps) {
         create_creep(creep.id);
     }
+}
+
+var creep_reached_end = function(creep_id) {
+    destroy_creep(id);
+    decrement_lives();
 }
 
 var destroy_creep = function(id) {

@@ -83,7 +83,7 @@ function Creep(id) {
   this.id = id;
   this.x = 0;
   this.y = 2;
-  this.speed;
+  this.speed = 1;
   this.path = the_path;
   this.pathIndex = 0;
   this.health;
@@ -111,7 +111,7 @@ function updateTower(userid, tower, creeps, delta) {
    tower.timeSinceShot = tower.timeSinceShot + delta;
    if (tower.timeSinceShot > 500){
       for(var i in creeps){
-          if( inRange(creep, tower) ){
+          if( inRange(creeps[i], tower) ){
               // tell them to fire a tower
               nowjs.getClient(userid, function(){
                   this.now.tower_fire(tower.x, tower.y, creeps[i].id)
@@ -146,9 +146,9 @@ function updateCreep(userid, user, creep, delta) {
          creep.pathIndex = creep.pathIndex + 1;
          if (creep.pathIndex == creep.path.length - 1) {
              // we have reached the end
-             for (var i in users.creeps) {
-                 if (users.creeps[i].id == creep.id) {
-                    delete creeps[i];
+             for (var i in user.creeps) {
+                 if (user.creeps[i].id == creep.id) {
+                    delete user.creeps[i];
                     break;
                  }
              }
@@ -156,7 +156,7 @@ function updateCreep(userid, user, creep, delta) {
 
              // tell them a creep reached the end
              nowjs.getClient(userid, function(){
-               this.now.creep_reached_end(creep.id);
+               this.now.client_creep_reached_end(creep.id);
              });
          } else {
              // need to update xVel and yVel
@@ -190,7 +190,7 @@ function spawnUserCreep(userid, user) {
     var creep = new Creep(creep_id++);
     user.creeps.push(creep);
     nowjs.getClient(userid, function(){
-      this.now.creep_create(creep.id);
+      this.now.client_create_creep(creep.id);
     });
 }
 
@@ -217,17 +217,20 @@ everyone.now.buildTower = function(x, y, type) {
 }
 
 everyone.now.synchCreeps = function() {
-    this.now.synchCreeps( players[this.user.clientId].creeps );
+    this.now.client_synch_creeps( players[this.user.clientId].creeps );
 }
 
-lastTime = new Date().getTime();
-lastCreepSpawn = lastTime;
-while(1) {
-    currentTime = new Date().getTime();
+var lastTime = new Date().getTime();
+var lastCreepSpawn = lastTime;
+function loop(){
+    var currentTime = new Date().getTime();
     updateGameState(currentTime - lastTime);
     if (currentTime - lastCreepSpawn >= 1000) {
         lastCreepSpawn = currentTime;
         spawnAllCreeps();
     }
     lastTime = currentTime;
+    setTimeout(loop,40);
 }
+
+loop();
