@@ -204,6 +204,7 @@ now.client_build_tower = function(success, x, y, type, new_gold) {
         log('Successfully built tower: ' + type);
         draw_tower(1, x, y);
         update_gold(new_gold);
+        do_upgrade_tower_menu(map[x][y]);
     } else {
         log('Could not build tower.');
     }
@@ -232,7 +233,7 @@ var decrement_lives = function() {
 }
 
 var log = function(msg) {
-    $('#log').html(new Date().toDateString() + ' ' + msg);
+    $('#log').html(new Date().toLocaleTimeString() + ' ' + msg);
 }
 
 var draw_tower = function(level, x, y) {
@@ -399,7 +400,7 @@ var tower_fire = function(tower_x, tower_y, creep_id) {
 }
 
 var draw_laser = function(x, y, cx, cy) {
-    var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
+    var laser = paper.path("M" + (x+.5)*tile_size + " " + (y+.5) *tile_size + "L" + (cx+.5)*tile_size + " " + (cy+.5)*tile_size);
     laser.attr({'fill': colors()['laser_color'],
                 'stroke-width': 3});
     return laser;
