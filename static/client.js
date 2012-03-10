@@ -104,21 +104,17 @@ var init_path_graphics = function(){
         var y = path[i]['y'], ny = path[i+1]['y'];
         if (x != nx)
         {
-            if (nx > x) dir = 1; 
-            else dir = -1;
-            for(j = x; j <= nx; j += dir)
+            for(j = Math.min(x,nx); j <= Math.max(x,nx); j++)
             {
-                map[i][j].td.type = 'path'; 
-                map[i][j].td.attr('fill', colors()['path']);
+                map[j][y].td.type = 'path'; 
+                map[j][y].td.attr('fill', colors()['path']);
             }
         }else
         {
-            if (ny > y) dir = 1; 
-            else dir = -1;
-            for(j = y; j <= ny; j += dir)
+            for(j = Math.min(y,ny); j <= Math.max(y,ny); j++)
             {
-                map[i][j].td.type = 'path'; 
-                map[i][j].td.attr('fill', colors()['path']);
+                map[x][j].td.type = 'path'; 
+                map[x][j].td.attr('fill', colors()['path']);
             }
 
         }
