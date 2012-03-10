@@ -67,6 +67,7 @@ var colors = function() {
     var api = Object();
     api['terrain'] = '#569993';
     api['basic_tower'] = '#29FF73';
+    api['upgraded_tower'] = '#311011';
     api['selected_terrain'] = '#007167';
     api['creep_color'] = '#FF6C00';
     api['laser_color'] = '#FF0016';
@@ -225,6 +226,8 @@ var draw_tower = function(type, x, y) {
         map[x][y].td.tower.y = y;
         map[x][y].td.tower.attr({'fill': colors()['basic_tower']}); 
         map[x][y].td.tower.click(select_tower);
+    }else{
+        map[x][y].td.tower.attr({'fill': colors()['upgraded_tower']}); 
     }
 }
 
