@@ -1,0 +1,54 @@
+<html lang="en">
+  <head>
+    <style type="text/css">
+      #game_container{margin-left:0; margin-top:10}
+      .hidden{display:none}
+      th{text-align:left}
+      #players{min-height:300px}
+    </style>
+  </head>
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <h1 class="brand">OMG WE'RE SO KEWL defense</h1>
+        </div>
+      </div>
+    </div>
+    <div id="fb-root"></div>
+
+    <div class="container">
+        <div class="row span12">
+        <button id="login" class="span12 btn btn-primary"> LOG IN TO FACEBOOK TO PLAY THIS SWEET GAME </button>
+        </div>
+
+        <div class="row span12">
+        <table class="span12 table-striped">
+            <tbody id="players">
+                <tr>
+                    <th>Name</th>
+                    <th>Picture</th>
+                </tr>
+                
+            </tbody>
+        </table>
+        </div>
+        <div class="row span12">
+        <button id="start_game" class="span12 btn btn-primary"> START THE GAME ONCE EVERYONE HAS JOINED </button>
+        </div>
+    </div>
+      <script type="text/javascript" src="/nowjs/now.js"></script>
+      <script type="text/javascript" src="/static/jquery.min.js"></script>
+      <script type="text/javascript" src="/static/raphael-min.js"></script>
+      <script type="text/javascript" src="/static/bootstrap/js/bootstrap.js"></script>
+      <script type="text/javascript" src="/static/client.js"></script>
+      <script type="text/javascript">
+        init_room();
+      </script>
+      <link href="/static/bootstrap/css/bootstrap.css" rel="stylesheet">
+  </body>
+
+</html>
+
+    

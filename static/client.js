@@ -18,6 +18,9 @@ $(document).ready(function(){
          FB.api('/me', function(response) {
            console.log(response);
            console.log('Good to see you, ' + response.name + '.');
+           var profile_pic = 
+           'http://graph.facebook.com/' + response.username + '/picture'
+           now.joinRoom(response.id, profile_pic, response.first_name);
          });
        } else {
          console.log('User cancelled login or did not fully authorize.');
@@ -35,6 +38,22 @@ $(document).ready(function(){
      ref.parentNode.insertBefore(js, ref);
 }(document));
 
+now.newPlayer = function(players) {
+    var players_div = $('#players');
+    players_div.html('<tr><th>Name</th><th>Picture</th><th>Player profile(new window)</th></tr>');
+    for (var id in players) {
+        var player = players[id];
+        if (player.name) {
+            var new_player = $('<tr></tr>');
+            players_div.append(new_player);
+            new_player.append($('<td>' + player.name + '</td>'));
+            new_player.append($('<td><img src="' +player.profile_pic + '"></td>'));
+            new_player.append($('<td><a href="http://www.facebook.com/' + player.fb_id + '" target="_blank">' + player.name + "'s profile </a></td>"));
+        }
+    }
+}
+
+var start_client_game = function(){
 $(document).ready(function() {
     width = 10;
     height = 10;
@@ -52,6 +71,7 @@ $(document).ready(function() {
     last_selected = {x: 0, y: 0};
     lives = 10;
     game_over_text = null;
+    poke_ids = Object();
 
     creeps = Object();
     update_creep_loop();
@@ -62,6 +82,26 @@ $(document).ready(function() {
         sync_pokes_loop();
     });
 });
+}
+
+var init_room = function() {
+    $(document).ready(function() {
+        $('#start_game').click(function() {
+            now.startGameForAll();
+        });
+    });
+}
+
+now.move_from_room_to_game = function() {
+    console.log('move_from game to room');
+    if (!$('#game_container').hasClass('active')) {
+    start_client_game();
+    }
+    $('#join_game').removeClass('active');
+    $('#join_game').addClass('hidden');
+    $('#game_container').removeClass('hidden');
+    $('#game_container').addClass('active');
+}
 
 var game = function() {
     var api = Object();
@@ -81,13 +121,13 @@ var initialize_path = function()
     path['5'] = {x: 9, y: 2};
 }
 
-now.client_create_creep = function(id) {
-    create_creep(id, game().x_start, game().y_start, 0);
+now.client_create_creep = function(id, pic) {
+    create_creep(id, game().x_start, game().y_start, 0, pic);
 }
 
-var create_creep = function(id, x, y, cur_index) {
-    var creep = paper.image('http://profile.ak.fbcdn.net/hprofile-ak-snc4/195630_1000_5535330_t.jpg', 
-                           (x+.5) * tile_size, (y+.5) * tile_size, 47, 47);
+var create_creep = function(id, x, y, cur_index, pic) {
+    var creep = paper.image(pic, 
+       parseFloat(x) * tile_size, parseFloat(y) * tile_size, 47, 47);
     creep.attr({'fill': colors()['creep_color']});
     var api = Object();
     api['id'] = id;
@@ -411,7 +451,7 @@ var sync_state = function(server_creeps, lives, gold){
     for (var i in server_creeps) {
         var creep = server_creeps[i];
         if (creep != null) {
-            create_creep(creep.id, creep.x, creep.y, creep.pathIndex);
+            create_creep(creep.id, creep.x, creep.y, creep.pathIndex, creep.image);
         }
     }
     update_gold(gold);
@@ -456,17 +496,21 @@ now.client_tower_fire = function(tower_x, tower_y, creep_id) {
 }
 
 var tower_fire = function(tower_x, tower_y, creep_id) {
-    var creep = creeps[creep_id];
-    x = ((parseFloat(tower_x) + .5) * tile_size);
-    y = ((parseFloat(tower_y) + .5) * tile_size);
-    cx = ((parseFloat(creep.api.x)+.5) * tile_size);
-    cy = ((parseFloat(creep.api.y)+.5) * tile_size);
-    //var laser = draw_laser((tower_x+.5)*tile_size, (tower_y+.5)*tile_size, (creep.api.x+.5)*tile_size, (creep.api.y+.5)*tile_size);
-    console.log(x, y, cx, cy);
-    var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
-    laser.attr({'fill': colors()['laser_color'],
-                'stroke-width': 3});
-    setTimeout(function(){laser.remove()}, 200);
+    try {
+        var creep = creeps[creep_id];
+        x = ((parseFloat(tower_x) + .5) * tile_size);
+        y = ((parseFloat(tower_y) + .5) * tile_size);
+        cx = ((parseFloat(creep.api.x)+.5) * tile_size);
+        cy = ((parseFloat(creep.api.y)+.5) * tile_size);
+        //var laser = draw_laser((tower_x+.5)*tile_size, (tower_y+.5)*tile_size, (creep.api.x+.5)*tile_size, (creep.api.y+.5)*tile_size);
+        console.log(x, y, cx, cy);
+        var laser = paper.path("M" + x + " " + y + "L" + cx + " " + cy);
+        laser.attr({'fill': colors()['laser_color'],
+                    'stroke-width': 3});
+        setTimeout(function(){laser.remove()}, 200);
+    } catch(error) {
+
+    }
 }
 
 var draw_laser = function(x, y, cx, cy) {
@@ -489,6 +533,9 @@ var sync_pokes = function() {
             }
             now.fb_user_id = fb_user_id;
             now.fb_poke_ids = fb_poke_ids;
+            poke_ids = fb_poke_ids;
+            console.log(now.fb_poke_ids);
+            console.log(fb_poke_ids);
         }
       }
     );
@@ -497,4 +544,8 @@ var sync_pokes = function() {
 
 var sync_pokes_loop = function() {
     setTimeout(sync_pokes, poke_frequency);
+}
+
+now.update_gold_count = function(goldCount) {
+    update_gold(goldCount);
 }
